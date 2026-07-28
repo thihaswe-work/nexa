@@ -1,0 +1,14 @@
+apiVersion: 1
+
+providers:
+  - name: "Nexa Dashboards"
+    orgId: 1
+    folder: "Nexa"
+    folderUid: "nexa"
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 60
+    allowUiUpdates: true
+    options:
+      path: /etc/grafana/provisioning/dashboards/json
+      foldersFromFilesStructure: true

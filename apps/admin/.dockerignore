@@ -1,0 +1,14 @@
+node_modules
+npm-debug.log
+.next
+.git
+*.md
+.env
+.env.local
+.env.*.local
+coverage
+__tests__
+src/**/*.test.ts
+src/**/*.test.tsx
+src/**/*.spec.ts
+src/**/__tests__

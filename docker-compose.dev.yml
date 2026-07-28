@@ -1,0 +1,122 @@
+version: "3.9"
+
+x-logging: &default-logging
+  driver: "json-file"
+  options:
+    max-size: "10m"
+    max-file: "2"
+
+networks:
+  nexa-dev-net:
+    driver: bridge
+
+volumes:
+  postgres-dev-data:
+  redis-dev-data:
+
+services:
+  postgres:
+    image: postgis/postgis:16-3.4
+    container_name: nexa-postgres-dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: nexa_dev
+      POSTGRES_USER: nexa
+      POSTGRES_PASSWORD: nexa
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-dev-data:/var/lib/postgresql/data
+    networks:
+      - nexa-dev-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nexa"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: nexa-redis-dev
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-dev-data:/data
+    networks:
+      - nexa-dev-net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  minio:
+    image: minio/minio:latest
+    container_name: nexa-minio-dev
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: nexa
+      MINIO_ROOT_PASSWORD: nexa-dev-secret
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - ./data/minio:/data
+    networks:
+      - nexa-dev-net
+
+  mailhog:
+    image: mailhog/mailhog
+    container_name: nexa-mailhog-dev
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    networks:
+      - nexa-dev-net
+
+  api:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile.dev
+    container_name: nexa-api-dev
+    restart: unless-stopped
+    volumes:
+      - ./apps/api/src:/app/src
+      - ./packages:/app/packages
+    environment:
+      NODE_ENV: development
+      PORT: 4000
+      DATABASE_URL: postgresql://nexa:nexa@postgres:5432/nexa_dev?schema=public
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: dev-jwt-secret-do-not-use-in-production
+    ports:
+      - "4000:4000"
+    networks:
+      - nexa-dev-net
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  admin:
+    build:
+      context: ./apps/admin
+      dockerfile: Dockerfile.dev
+    container_name: nexa-admin-dev
+    restart: unless-stopped
+    volumes:
+      - ./apps/admin/src:/app/src
+      - ./packages:/app/packages
+    environment:
+      NODE_ENV: development
+      NEXT_PUBLIC_API_URL: http://localhost:4000/api/v1
+      NEXTAUTH_URL: http://localhost:3000
+      NEXTAUTH_SECRET: dev-nextauth-secret
+    ports:
+      - "3000:3000"
+    networks:
+      - nexa-dev-net
+    depends_on:
+      - api

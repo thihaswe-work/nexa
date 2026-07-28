@@ -1,0 +1,16 @@
+apiVersion: 1
+
+datasources:
+  - name: PostgreSQL
+    type: grafana-postgresql-datasource
+    uid: postgresql
+    access: proxy
+    url: postgres:5432
+    user: ${DATABASE_USER:-nexa}
+    secureJsonData:
+      password: ${DATABASE_PASSWORD}
+    jsonData:
+      database: ${DATABASE_NAME:-nexa_prod}
+      sslmode: "disable"
+      maxOpenConns: 5
+      postgresVersion: 1500

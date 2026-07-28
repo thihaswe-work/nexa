@@ -1,0 +1,154 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 224 71% 4%;
+    --card: 0 0% 100%;
+    --card-foreground: 224 71% 4%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 224 71% 4%;
+    --primary: 252 87% 67%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 224 71% 4%;
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 9% 46%;
+    --accent: 252 87% 96%;
+    --accent-foreground: 252 87% 40%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
+    --success: 142 71% 45%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 252 87% 67%;
+    --radius: 0.625rem;
+    --sidebar-width: 16rem;
+    --chart-1: 252 87% 67%;
+    --chart-2: 162 73% 46%;
+    --chart-3: 38 92% 50%;
+    --chart-4: 0 84% 60%;
+    --chart-5: 217 91% 60%;
+  }
+
+  .dark {
+    --background: 224 71% 4%;
+    --foreground: 210 40% 98%;
+    --card: 224 71% 6%;
+    --card-foreground: 210 40% 98%;
+    --popover: 224 71% 6%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 252 87% 67%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 224 24% 12%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 224 24% 12%;
+    --muted-foreground: 220 9% 60%;
+    --accent: 252 87% 14%;
+    --accent-foreground: 252 87% 80%;
+    --destructive: 0 70% 50%;
+    --destructive-foreground: 210 40% 98%;
+    --success: 142 71% 45%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+    --border: 224 24% 12%;
+    --input: 224 24% 12%;
+    --ring: 252 87% 67%;
+    --chart-1: 252 87% 67%;
+    --chart-2: 162 73% 46%;
+    --chart-3: 38 92% 50%;
+    --chart-4: 0 70% 50%;
+    --chart-5: 217 91% 60%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+@layer utilities {
+  .animate-in {
+    animation: fadeIn 0.3s ease-out;
+  }
+  .slide-in-from-left {
+    animation: slideInFromLeft 0.3s ease-out;
+  }
+  .slide-in-from-right {
+    animation: slideInFromRight 0.3s ease-out;
+  }
+  .slide-in-from-bottom {
+    animation: slideInFromBottom 0.3s ease-out;
+  }
+  .scale-in {
+    animation: scaleIn 0.2s ease-out;
+  }
+  .stat-card-hover {
+    @apply transition-all duration-200;
+  }
+  .stat-card-hover:hover {
+    @apply -translate-y-0.5 shadow-lg;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideInFromLeft {
+  from { opacity: 0; transform: translateX(-10px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideInFromRight {
+  from { opacity: 0; transform: translateX(10px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideInFromBottom {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+
+@layer components {
+  .sidebar-nav-item {
+    @apply flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200;
+  }
+  .sidebar-nav-item-active {
+    @apply bg-primary/10 text-primary;
+  }
+  .sidebar-nav-item-inactive {
+    @apply text-muted-foreground hover:bg-accent hover:text-accent-foreground;
+  }
+  .card-gradient {
+    @apply bg-gradient-to-br from-card to-muted/30;
+  }
+  .stat-value {
+    @apply text-2xl font-bold tracking-tight;
+  }
+  .stat-label {
+    @apply text-xs font-medium text-muted-foreground;
+  }
+}

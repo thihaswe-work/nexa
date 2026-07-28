@@ -1,0 +1,10 @@
+.dart_tool
+.pub
+.packages
+build
+.android
+.ios
+.git
+*.md
+test
+coverage

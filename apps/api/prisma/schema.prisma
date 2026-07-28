@@ -1,0 +1,662 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["fullTextSearch", "postgresqlExtensions"]
+}
+
+datasource db {
+  provider     = "postgresql"
+  url          = env("DATABASE_URL")
+  extensions   = [postgis]
+}
+
+// ──────────────────────────────────────────────
+// Enums
+// ──────────────────────────────────────────────
+
+enum FriendRequestStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  CANCELLED
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  VIDEO
+  AUDIO
+  LOCATION
+  SYSTEM
+}
+
+enum AttachmentType {
+  IMAGE
+  VIDEO
+  DOCUMENT
+  AUDIO
+  LOCATION
+  OTHER
+}
+
+enum NotificationType {
+  FRIEND_REQUEST
+  FRIEND_ACCEPTED
+  CHECK_IN
+  MENTION
+  MESSAGE
+  SYSTEM
+  LOCATION_NEARBY
+  REPORT_RESOLVED
+  ANNOUNCEMENT
+  NEARBY_INVITE
+}
+
+enum DevicePlatform {
+  IOS
+  ANDROID
+  WEB
+}
+
+enum ReportStatus {
+  PENDING
+  REVIEWED
+  RESOLVED
+  DISMISSED
+}
+
+enum ReportTargetType {
+  USER
+  PLACE
+  MESSAGE
+  REVIEW
+}
+
+enum LocationSource {
+  GPS
+  NETWORK
+  PASSIVE
+}
+
+enum UserActivity {
+  STILL
+  WALKING
+  RUNNING
+  IN_VEHICLE
+  CYCLING
+  UNKNOWN
+}
+
+// ──────────────────────────────────────────────
+// Core: Role & Permission (RBAC)
+// ──────────────────────────────────────────────
+
+model Permission {
+  id          String   @id @default(uuid()) @db.Uuid
+  action      String   @unique @db.VarChar(100)
+  resource    String   @db.VarChar(100)
+  description String?  @db.VarChar(255)
+
+  deletedAt DateTime? @map("deleted_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  roles RolePermission[]
+
+  @@index([action])
+  @@index([resource])
+  @@map("permissions")
+}
+
+model Role {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String   @unique @db.VarChar(50)
+  description String?  @db.VarChar(255)
+  isDefault   Boolean  @default(false) @map("is_default")
+
+  deletedAt DateTime? @map("deleted_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  users       User[]
+  permissions RolePermission[]
+
+  @@index([name])
+  @@map("roles")
+}
+
+model RolePermission {
+  roleId       String @map("role_id") @db.Uuid
+  permissionId String @map("permission_id") @db.Uuid
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@index([roleId])
+  @@index([permissionId])
+  @@map("role_permissions")
+}
+
+// ──────────────────────────────────────────────
+// Core: User & Profile
+// ──────────────────────────────────────────────
+
+model User {
+  id       String @id @default(uuid()) @db.Uuid
+  username String @unique @db.VarChar(30)
+  email    String @unique @db.VarChar(255)
+  password String @db.VarChar(255)
+
+  roleId    String   @map("role_id") @db.Uuid
+  isActive  Boolean  @default(true) @map("is_active")
+  isOnline  Boolean  @default(false) @map("is_online")
+  lastLoginAt DateTime? @map("last_login_at")
+
+  // Email verification
+  emailVerifiedAt  DateTime? @map("email_verified_at")
+  verificationToken String?  @map("verification_token") @db.VarChar(255)
+
+  // Password reset
+  resetPasswordToken     String?   @map("reset_password_token") @db.VarChar(255)
+  resetPasswordExpiresAt DateTime? @map("reset_password_expires_at")
+
+  deletedAt DateTime? @map("deleted_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  role             Role              @relation(fields: [roleId], references: [id])
+  profile          Profile?
+  privacySettings  PrivacySettings?
+  friendRequestsSent     FriendRequest[]   @relation("FriendRequestSender")
+  friendRequestsReceived FriendRequest[]   @relation("FriendRequestReceiver")
+  friendships            Friendship[]      @relation("FriendshipUser")
+  friendshipsWith        Friendship[]      @relation("FriendshipFriend")
+  conversations         ConversationParticipant[]
+  messages              Message[]
+  reactions             MessageReaction[]
+  notifications         Notification[]
+  devices               Device[]
+  refreshTokens         RefreshToken[]
+  reportsMade           Report[]           @relation("ReportReporter")
+  reportsResolved       Report[]           @relation("ReportResolver")
+  reportsReceived       Report[]           @relation("ReportTargetUser")
+  blocksMade            Block[]            @relation("BlockBlocker")
+  blocksReceived        Block[]            @relation("BlockBlocked")
+  locationHistory       LocationHistory[]
+  createdConversations  Conversation[]     @relation("ConversationCreator")
+
+  @@index([email])
+  @@index([username])
+  @@index([roleId])
+  @@index([isActive])
+  @@index([verificationToken])
+  @@index([resetPasswordToken])
+  @@index([deletedAt])
+  @@map("users")
+}
+
+model Profile {
+  id          String  @id @default(uuid()) @db.Uuid
+  userId      String  @unique @map("user_id") @db.Uuid
+  displayName String  @map("display_name") @db.VarChar(50)
+  bio         String? @db.VarChar(500)
+  avatarUrl   String? @map("avatar_url")
+  coverUrl    String? @map("cover_url")
+  phoneNumber String? @map("phone_number") @db.VarChar(20)
+  dateOfBirth DateTime? @map("date_of_birth") @db.Date
+  gender      String? @db.VarChar(20)
+
+  // Location (PostGIS + fallback)
+  lat Float? @db.DoublePrecision
+  lng Float? @db.DoublePrecision
+
+  city    String? @db.VarChar(100)
+  country String? @db.VarChar(100)
+
+  isNearbyVisible Boolean @default(true) @map("is_nearby_visible")
+
+  deletedAt DateTime? @map("deleted_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  user     User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  interests ProfileInterest[]
+
+  @@index([userId])
+  @@index([displayName])
+  @@index([lat, lng])
+  @@index([city, country])
+  @@index([isNearbyVisible])
+  @@index([deletedAt])
+  @@map("profiles")
+}
+
+// ──────────────────────────────────────────────
+// Interests
+// ──────────────────────────────────────────────
+
+model Interest {
+  id       String  @id @default(uuid()) @db.Uuid
+  name     String  @unique @db.VarChar(50)
+  category String? @db.VarChar(50)
+  icon     String? @db.VarChar(100)
+
+  deletedAt DateTime? @map("deleted_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  profiles ProfileInterest[]
+
+  @@index([name])
+  @@index([category])
+  @@index([deletedAt])
+  @@map("interests")
+}
+
+model ProfileInterest {
+  profileId  String @map("profile_id") @db.Uuid
+  interestId String @map("interest_id") @db.Uuid
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  profile  Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  interest Interest @relation(fields: [interestId], references: [id], onDelete: Cascade)
+
+  @@id([profileId, interestId])
+  @@index([profileId])
+  @@index([interestId])
+  @@map("profile_interests")
+}
+
+// ──────────────────────────────────────────────
+// Privacy Settings
+// ──────────────────────────────────────────────
+
+model PrivacySettings {
+  id                  String   @id @default(uuid()) @db.Uuid
+  userId              String   @unique @map("user_id") @db.Uuid
+
+  showLastSeen        Boolean  @default(true) @map("show_last_seen")
+  showOnline          Boolean  @default(true) @map("show_online")
+  showLocation        Boolean  @default(true) @map("show_location")
+  allowFriendRequests Boolean  @default(true) @map("allow_friend_requests")
+  allowMessagesFrom   String   @default("everyone") @map("allow_messages_from") @db.VarChar(20)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("privacy_settings")
+}
+
+// ──────────────────────────────────────────────
+// Social: Friend Requests & Friendships
+// ──────────────────────────────────────────────
+
+model FriendRequest {
+  id         String             @id @default(uuid()) @db.Uuid
+  senderId   String             @map("sender_id") @db.Uuid
+  receiverId String             @map("receiver_id") @db.Uuid
+  status     FriendRequestStatus @default(PENDING)
+  message    String?            @db.VarChar(500)
+
+  deletedAt DateTime? @map("deleted_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  sender   User @relation("FriendRequestSender",   fields: [senderId],   references: [id], onDelete: Cascade)
+  receiver User @relation("FriendRequestReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  @@unique([senderId, receiverId])
+  @@index([senderId])
+  @@index([receiverId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([deletedAt])
+  @@map("friend_requests")
+}
+
+model Friendship {
+  id       String @id @default(uuid()) @db.Uuid
+  userId   String @map("user_id") @db.Uuid
+  friendId String @map("friend_id") @db.Uuid
+
+  deletedAt DateTime? @map("deleted_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  user   User @relation("FriendshipUser",   fields: [userId],   references: [id], onDelete: Cascade)
+  friend User @relation("FriendshipFriend", fields: [friendId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, friendId])
+  @@index([userId])
+  @@index([friendId])
+  @@index([createdAt])
+  @@index([deletedAt])
+  @@map("friendships")
+}
+
+// ──────────────────────────────────────────────
+// Chat: Conversations & Messages
+// ──────────────────────────────────────────────
+
+model Conversation {
+  id               String   @id @default(uuid()) @db.Uuid
+  name             String?  @db.VarChar(100)
+  isGroup          Boolean  @default(false) @map("is_group")
+  isLocationBased  Boolean  @default(false) @map("is_location_based")
+  locationLat      Float?   @map("location_lat") @db.DoublePrecision
+  locationLng      Float?   @map("location_lng") @db.DoublePrecision
+  locationRadius   Int?     @default(1000) @map("location_radius")
+  locationName     String?  @map("location_name") @db.VarChar(100)
+  createdByUserId  String   @map("created_by_user_id") @db.Uuid
+  lastMessageAt    DateTime? @map("last_message_at")
+  lastMessagePreview String? @map("last_message_preview") @db.VarChar(200)
+
+  deletedAt DateTime? @map("deleted_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  createdBy    User                       @relation("ConversationCreator", fields: [createdByUserId], references: [id], onDelete: Cascade)
+  participants ConversationParticipant[]
+  messages     Message[]
+
+  @@index([createdByUserId])
+  @@index([lastMessageAt])
+  @@index([isLocationBased])
+  @@index([locationLat, locationLng])
+  @@index([deletedAt])
+  @@map("conversations")
+}
+
+model ConversationParticipant {
+  conversationId String   @map("conversation_id") @db.Uuid
+  userId         String   @map("user_id") @db.Uuid
+  joinedAt       DateTime @default(now()) @map("joined_at")
+  lastReadAt     DateTime @default(now()) @map("last_read_at")
+  lastDeliveredAt DateTime? @map("last_delivered_at")
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([conversationId, userId])
+  @@index([conversationId])
+  @@index([userId])
+  @@index([lastReadAt])
+  @@map("conversation_participants")
+}
+
+model Message {
+  id             String      @id @default(uuid()) @db.Uuid
+  conversationId String      @map("conversation_id") @db.Uuid
+  senderId       String      @map("sender_id") @db.Uuid
+  content        String?     @db.Text
+  type           MessageType @default(TEXT)
+
+  deliveredAt DateTime? @map("delivered_at")
+  readAt      DateTime? @map("read_at")
+  editedAt    DateTime? @map("edited_at")
+  editCount   Int       @default(0) @map("edit_count")
+
+  deletedAt DateTime? @map("deleted_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User        @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  attachments  MessageAttachment[]
+  replyTo      Message?    @relation("MessageReply", fields: [replyToId], references: [id])
+  replyToId    String?     @map("reply_to_id") @db.Uuid
+  replies      Message[]   @relation("MessageReply")
+  reactions    MessageReaction[]
+
+  @@index([conversationId])
+  @@index([conversationId, createdAt])
+  @@index([senderId])
+  @@index([createdAt])
+  @@index([type])
+  @@index([deliveredAt])
+  @@index([readAt])
+  @@index([deletedAt])
+  @@map("messages")
+}
+
+model MessageAttachment {
+  id        String         @id @default(uuid()) @db.Uuid
+  messageId String         @map("message_id") @db.Uuid
+  type      AttachmentType @default(IMAGE)
+  url       String         @db.VarChar(4096)
+  fileName  String?        @map("file_name") @db.VarChar(255)
+  fileSize  Int?           @map("file_size")
+  mimeType  String?        @map("mime_type") @db.VarChar(100)
+  width     Int?
+  height    Int?
+  duration  Int?           // seconds for audio/video
+  metadata  Json?          // extensible metadata
+
+  deletedAt DateTime? @map("deleted_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@index([messageId])
+  @@index([type])
+  @@index([deletedAt])
+  @@map("message_attachments")
+}
+
+model MessageReaction {
+  id        String   @id @default(uuid()) @db.Uuid
+  messageId String   @map("message_id") @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  emoji     String   @db.VarChar(100)
+
+  deletedAt DateTime? @map("deleted_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId, emoji])
+  @@index([messageId])
+  @@index([userId])
+  @@index([deletedAt])
+  @@map("message_reactions")
+}
+
+// ──────────────────────────────────────────────
+// Notifications & Devices
+// ──────────────────────────────────────────────
+
+model Notification {
+  id     String           @id @default(uuid()) @db.Uuid
+  userId String           @map("user_id") @db.Uuid
+  type   NotificationType
+  title  String           @db.VarChar(200)
+  body   String?          @db.Text
+  data   Json?            // payload for navigation/actions
+  isRead Boolean          @default(false) @map("is_read")
+  readAt DateTime?        @map("read_at")
+
+  deletedAt DateTime? @map("deleted_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, isRead])
+  @@index([userId, createdAt])
+  @@index([type])
+  @@index([isRead])
+  @@index([deletedAt])
+  @@map("notifications")
+}
+
+model Device {
+  id        String         @id @default(uuid()) @db.Uuid
+  userId    String         @map("user_id") @db.Uuid
+  deviceId  String         @map("device_id") @db.VarChar(255)
+  platform  DevicePlatform
+  pushToken String?        @map("push_token") @db.Text
+  fcmToken  String?        @map("fcm_token") @db.Text
+  isActive  Boolean        @default(true) @map("is_active")
+  lastUsedAt DateTime?     @map("last_used_at")
+
+  deletedAt DateTime? @map("deleted_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, deviceId])
+  @@index([userId])
+  @@index([deviceId])
+  @@index([pushToken])
+  @@index([fcmToken])
+  @@index([isActive])
+  @@index([deletedAt])
+  @@map("devices")
+}
+
+// ──────────────────────────────────────────────
+// Auth: Refresh Tokens
+// ──────────────────────────────────────────────
+// TIP: Run periodic cleanup of expired tokens:
+//   DELETE FROM refresh_tokens
+//   WHERE expires_at < NOW() AND revoked_at IS NOT NULL;
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  token     String   @unique @db.VarChar(512)
+  expiresAt DateTime @map("expires_at")
+  revokedAt DateTime? @map("revoked_at")
+  replacedByToken String? @map("replaced_by_token") @db.VarChar(512)
+
+  deletedAt DateTime? @map("deleted_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+  @@index([expiresAt])
+  @@index([revokedAt])
+  @@index([deletedAt])
+  @@map("refresh_tokens")
+}
+
+// ──────────────────────────────────────────────
+// Safety: Reports & Blocks
+// ──────────────────────────────────────────────
+
+model Report {
+  id              String           @id @default(uuid()) @db.Uuid
+  reporterId      String           @map("reporter_id") @db.Uuid
+  reportedUserId  String?          @map("reported_user_id") @db.Uuid
+  targetType      ReportTargetType @map("target_type")
+  targetId        String           @map("target_id") @db.VarChar(255)
+  reason          String           @db.VarChar(200)
+  description     String?          @db.Text
+  status          ReportStatus     @default(PENDING)
+  resolvedById    String?          @map("resolved_by_id") @db.Uuid
+  resolvedAt      DateTime?        @map("resolved_at")
+  resolutionNotes String?          @map("resolution_notes") @db.Text
+
+  deletedAt DateTime? @map("deleted_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  reporter      User  @relation("ReportReporter",   fields: [reporterId],   references: [id], onDelete: Cascade)
+  reportedUser  User? @relation("ReportTargetUser", fields: [reportedUserId], references: [id], onDelete: SetNull)
+  resolvedBy    User? @relation("ReportResolver",   fields: [resolvedById], references: [id], onDelete: SetNull)
+
+  @@index([reporterId])
+  @@index([reportedUserId])
+  @@index([targetType, targetId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([deletedAt])
+  @@map("reports")
+}
+
+model Block {
+  id        String @id @default(uuid()) @db.Uuid
+  blockerId String @map("blocker_id") @db.Uuid
+  blockedId String @map("blocked_id") @db.Uuid
+  reason    String? @db.VarChar(500)
+
+  deletedAt DateTime? @map("deleted_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  blocker User @relation("BlockBlocker", fields: [blockerId], references: [id], onDelete: Cascade)
+  blocked User @relation("BlockBlocked", fields: [blockedId], references: [id], onDelete: Cascade)
+
+  @@unique([blockerId, blockedId])
+  @@index([blockerId])
+  @@index([blockedId])
+  @@index([deletedAt])
+  @@map("blocks")
+}
+
+// ──────────────────────────────────────────────
+// Location: History Tracking
+// ──────────────────────────────────────────────
+
+model LocationHistory {
+  id        String         @id @default(uuid()) @db.Uuid
+  userId    String         @map("user_id") @db.Uuid
+
+  // Location coordinates
+  lat       Float          @db.DoublePrecision
+  lng       Float          @db.DoublePrecision
+  accuracy  Float?         @db.DoublePrecision
+  altitude  Float?         @db.DoublePrecision
+  heading   Float?         @db.DoublePrecision
+  speed     Float?         @db.DoublePrecision
+
+  source       LocationSource @default(GPS)
+  activity     UserActivity   @default(UNKNOWN)
+  isBackground Boolean        @default(false) @map("is_background")
+
+  deletedAt DateTime? @map("deleted_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, createdAt])
+  @@index([userId, lat, lng])
+  @@index([createdAt])
+  @@index([source])
+  @@index([activity])
+  @@index([deletedAt])
+  @@map("location_history")
+}
+
+// ──────────────────────────────────────────────
+// PostGIS: Spatial Indexes & Views (Raw SQL)
+// ──────────────────────────────────────────────
+
+// Prisma does not support GIST indexes natively.
+// Create via raw SQL migration:
+//
+//   CREATE INDEX idx_profiles_location_gist
+//     ON profiles USING GIST (
+//       ST_SetSRID(ST_MakePoint(lng, lat), 4326)
+//     )
+//     WHERE deleted_at IS NULL AND lat IS NOT NULL AND lng IS NOT NULL;
+//
+//   CREATE INDEX idx_location_history_gist
+//     ON location_history USING GIST (
+//       ST_SetSRID(ST_MakePoint(lng, lat), 4326)
+//     );
+//
+// The following views are created via migration SQL:
+// 1. user_locations — active user locations as geometry points
+// 2. nearby_users — pre-computed spatial join
