@@ -5,7 +5,8 @@ class PrivacySettingsPage extends ConsumerStatefulWidget {
   const PrivacySettingsPage({super.key});
 
   @override
-  ConsumerState<PrivacySettingsPage> createState() => _PrivacySettingsPageState();
+  ConsumerState<PrivacySettingsPage> createState() =>
+      _PrivacySettingsPageState();
 }
 
 class _PrivacySettingsPageState extends ConsumerState<PrivacySettingsPage> {
@@ -24,7 +25,7 @@ class _PrivacySettingsPageState extends ConsumerState<PrivacySettingsPage> {
       body: ListView(
         padding: const EdgeInsets.symmetric(vertical: 8),
         children: [
-          _SectionHeader(title: 'Visibility'),
+          const _SectionHeader(title: 'Visibility'),
           _SwitchTile(
             icon: Icons.access_time_rounded,
             title: 'Show Last Seen',
@@ -47,7 +48,7 @@ class _PrivacySettingsPageState extends ConsumerState<PrivacySettingsPage> {
             onChanged: (v) => setState(() => _showLocation = v),
           ),
           const SizedBox(height: 16),
-          _SectionHeader(title: 'Connections'),
+          const _SectionHeader(title: 'Connections'),
           _SwitchTile(
             icon: Icons.person_add_outlined,
             title: 'Allow Friend Requests',
@@ -56,11 +57,16 @@ class _PrivacySettingsPageState extends ConsumerState<PrivacySettingsPage> {
             onChanged: (v) => setState(() => _allowFriendRequests = v),
           ),
           ListTile(
-            contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 2),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 20, vertical: 2),
             leading: Container(
-              width: 40, height: 40,
-              decoration: BoxDecoration(color: theme.colorScheme.primaryContainer, borderRadius: BorderRadius.circular(12)),
-              child: Icon(Icons.message_outlined, color: theme.colorScheme.primary, size: 22),
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                  color: theme.colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(12)),
+              child: Icon(Icons.message_outlined,
+                  color: theme.colorScheme.primary, size: 22),
             ),
             title: const Text('Allow Messages From'),
             trailing: DropdownButton<String>(
@@ -71,7 +77,8 @@ class _PrivacySettingsPageState extends ConsumerState<PrivacySettingsPage> {
                 DropdownMenuItem(value: 'friends', child: Text('Friends')),
                 DropdownMenuItem(value: 'none', child: Text('No one')),
               ],
-              onChanged: (v) => setState(() => _allowMessagesFrom = v ?? 'everyone'),
+              onChanged: (v) =>
+                  setState(() => _allowMessagesFrom = v ?? 'everyone'),
             ),
             onTap: () {},
           ),
@@ -109,7 +116,12 @@ class _SwitchTile extends StatelessWidget {
   final bool value;
   final ValueChanged<bool> onChanged;
 
-  const _SwitchTile({required this.icon, required this.title, required this.subtitle, required this.value, required this.onChanged});
+  const _SwitchTile(
+      {required this.icon,
+      required this.title,
+      required this.subtitle,
+      required this.value,
+      required this.onChanged});
 
   @override
   Widget build(BuildContext context) {
@@ -117,11 +129,16 @@ class _SwitchTile extends StatelessWidget {
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 2),
       leading: Container(
-        width: 40, height: 40,
-        decoration: BoxDecoration(color: theme.colorScheme.primaryContainer, borderRadius: BorderRadius.circular(12)),
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+            color: theme.colorScheme.primaryContainer,
+            borderRadius: BorderRadius.circular(12)),
         child: Icon(icon, color: theme.colorScheme.primary, size: 22),
       ),
-      title: Text(title, style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w500)),
+      title: Text(title,
+          style: theme.textTheme.titleSmall
+              ?.copyWith(fontWeight: FontWeight.w500)),
       subtitle: Text(subtitle, style: theme.textTheme.bodySmall),
       trailing: Switch(value: value, onChanged: onChanged),
     );

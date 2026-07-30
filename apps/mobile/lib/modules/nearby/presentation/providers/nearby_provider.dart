@@ -26,7 +26,6 @@ class NearbyNotifier extends StateNotifier<NearbyState> {
   final NearbyRepository _repository;
   final LocationService _locationService;
   final SocketClient _socketClient;
-  final Ref _ref;
   StreamSubscription<Map<String, dynamic>>? _socketSub;
   StreamSubscription<Position>? _gpsSub;
   Timer? _refreshTimer;
@@ -35,7 +34,6 @@ class NearbyNotifier extends StateNotifier<NearbyState> {
     this._repository,
     this._locationService,
     this._socketClient,
-    this._ref,
   ) : super(const NearbyState());
 
   Future<void> init() async {

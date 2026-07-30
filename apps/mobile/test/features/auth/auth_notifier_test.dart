@@ -2,9 +2,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:nexa_mobile/core/errors/failures.dart';
-import 'package:nexa_mobile/modules/auth/domain/entities/auth_tokens.dart';
-import 'package:nexa_mobile/modules/auth/domain/entities/user.dart';
-import 'package:nexa_mobile/modules/auth/domain/repositories/auth_repository.dart';
 import 'package:nexa_mobile/modules/auth/presentation/providers/auth_notifier.dart';
 import 'package:nexa_mobile/modules/auth/presentation/providers/auth_state.dart';
 import '../../helpers/mocks.dart';
@@ -56,8 +53,9 @@ void main() {
     });
 
     test('should set error on login failure', () async {
-      when(() => mockRepository.login(email, password))
-          .thenAnswer((_) async => Left(ServerFailure(message: 'Invalid credentials', statusCode: 401)));
+      when(() => mockRepository.login(email, password)).thenAnswer((_) async =>
+          const Left(
+              ServerFailure(message: 'Invalid credentials', statusCode: 401)));
 
       await notifier.login(email, password);
 
@@ -69,8 +67,8 @@ void main() {
     test('should set error if getCurrentUser fails after login', () async {
       when(() => mockRepository.login(email, password))
           .thenAnswer((_) async => Right(tAuthTokens));
-      when(() => mockRepository.getCurrentUser())
-          .thenAnswer((_) async => Left(ServerFailure(message: 'Failed to fetch user')));
+      when(() => mockRepository.getCurrentUser()).thenAnswer((_) async =>
+          const Left(ServerFailure(message: 'Failed to fetch user')));
 
       await notifier.login(email, password);
 
@@ -98,7 +96,8 @@ void main() {
 
     test('should set error on registration failure', () async {
       when(() => mockRepository.register(email, password, displayName))
-          .thenAnswer((_) async => Left(ValidationFailure(message: 'Email already taken')));
+          .thenAnswer((_) async =>
+              const Left(ValidationFailure(message: 'Email already taken')));
 
       await notifier.register(email, password, displayName);
 
@@ -109,7 +108,8 @@ void main() {
 
   group('logout', () {
     test('should set unauthenticated on successful logout', () async {
-      when(() => mockRepository.logout()).thenAnswer((_) async => const Right(null));
+      when(() => mockRepository.logout())
+          .thenAnswer((_) async => const Right(null));
 
       await notifier.logout();
 
@@ -118,8 +118,8 @@ void main() {
     });
 
     test('should set error on logout failure', () async {
-      when(() => mockRepository.logout())
-          .thenAnswer((_) async => Left(ServerFailure(message: 'Network error')));
+      when(() => mockRepository.logout()).thenAnswer(
+          (_) async => const Left(ServerFailure(message: 'Network error')));
 
       await notifier.logout();
 
@@ -130,7 +130,8 @@ void main() {
 
   group('checkAuth', () {
     test('should authenticate if user is already authenticated', () async {
-      when(() => mockRepository.isAuthenticated()).thenAnswer((_) async => true);
+      when(() => mockRepository.isAuthenticated())
+          .thenAnswer((_) async => true);
       when(() => mockRepository.getCurrentUser())
           .thenAnswer((_) async => Right(tUser));
 
@@ -141,7 +142,8 @@ void main() {
     });
 
     test('should set unauthenticated if not authenticated', () async {
-      when(() => mockRepository.isAuthenticated()).thenAnswer((_) async => false);
+      when(() => mockRepository.isAuthenticated())
+          .thenAnswer((_) async => false);
 
       await notifier.checkAuth();
 
@@ -150,9 +152,10 @@ void main() {
     });
 
     test('should set unauthenticated if getCurrentUser fails', () async {
-      when(() => mockRepository.isAuthenticated()).thenAnswer((_) async => true);
-      when(() => mockRepository.getCurrentUser())
-          .thenAnswer((_) async => Left(ServerFailure(message: 'Token expired')));
+      when(() => mockRepository.isAuthenticated())
+          .thenAnswer((_) async => true);
+      when(() => mockRepository.getCurrentUser()).thenAnswer(
+          (_) async => const Left(ServerFailure(message: 'Token expired')));
 
       await notifier.checkAuth();
 
@@ -171,8 +174,8 @@ void main() {
     });
 
     test('should set error on failure', () async {
-      when(() => mockRepository.forgotPassword('test@test.com'))
-          .thenAnswer((_) async => Left(ServerFailure(message: 'Email not found')));
+      when(() => mockRepository.forgotPassword('test@test.com')).thenAnswer(
+          (_) async => Left(const ServerFailure(message: 'Email not found')));
 
       await notifier.forgotPassword('test@test.com');
 
@@ -184,7 +187,7 @@ void main() {
   group('clearError', () {
     test('should clear error message', () async {
       when(() => mockRepository.login(any(), any()))
-          .thenAnswer((_) async => Left(ServerFailure(message: 'Error')));
+          .thenAnswer((_) async => const Left(ServerFailure(message: 'Error')));
 
       await notifier.login('a@b.com', 'pass');
       expect(notifier.state.errorMessage, isNotNull);

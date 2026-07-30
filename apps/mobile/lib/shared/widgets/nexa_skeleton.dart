@@ -18,7 +18,8 @@ class NexaSkeleton extends StatelessWidget {
     final theme = Theme.of(context);
     return Shimmer.fromColors(
       baseColor: theme.colorScheme.surfaceContainerHighest,
-      highlightColor: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.6),
+      highlightColor:
+          theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.6),
       child: Container(
         width: width,
         height: height,
@@ -75,16 +76,16 @@ class _SkeletonListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return const Row(
       children: [
-        const NexaSkeletonAvatar(),
-        const SizedBox(width: 12),
+        NexaSkeletonAvatar(),
+        SizedBox(width: 12),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               NexaSkeleton(width: 140, height: 14, borderRadius: 4),
-              const SizedBox(height: 8),
+              SizedBox(height: 8),
               NexaSkeleton(width: 200, height: 12, borderRadius: 4),
             ],
           ),
@@ -109,15 +110,16 @@ class _SkeletonCardItem extends StatelessWidget {
         children: [
           const NexaSkeletonAvatar(size: 56),
           const SizedBox(width: 14),
-          Expanded(
+          const Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 NexaSkeleton(width: 160, height: 16, borderRadius: 4),
-                const SizedBox(height: 8),
+                SizedBox(height: 8),
                 NexaSkeleton(width: 100, height: 13, borderRadius: 4),
-                const SizedBox(height: 6),
-                NexaSkeleton(width: double.infinity, height: 11, borderRadius: 4),
+                SizedBox(height: 6),
+                NexaSkeleton(
+                    width: double.infinity, height: 11, borderRadius: 4),
               ],
             ),
           ),

@@ -19,7 +19,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       body: ListView(
         padding: const EdgeInsets.symmetric(vertical: 8),
         children: [
-          _SectionHeader(title: 'Account'),
+          const _SectionHeader(title: 'Account'),
           _SettingsTile(
             icon: Icons.person_outline_rounded,
             title: 'Edit Profile',
@@ -33,7 +33,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             onTap: () => context.push('/settings/privacy'),
           ),
           const SizedBox(height: 16),
-          _SectionHeader(title: 'Preferences'),
+          const _SectionHeader(title: 'Preferences'),
           _SettingsTile(
             icon: Icons.notifications_outlined,
             title: 'Notifications',
@@ -53,7 +53,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             onTap: () {},
           ),
           const SizedBox(height: 16),
-          _SectionHeader(title: 'Support'),
+          const _SectionHeader(title: 'Support'),
           _SettingsTile(
             icon: Icons.help_outline_rounded,
             title: 'Help Center',
@@ -71,7 +71,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: OutlinedButton(
               onPressed: () {},
-              style: OutlinedButton.styleFrom(foregroundColor: theme.colorScheme.error),
+              style: OutlinedButton.styleFrom(
+                  foregroundColor: theme.colorScheme.error),
               child: const Text('Sign Out'),
             ),
           ),
@@ -115,8 +116,7 @@ class _SettingsTile extends StatelessWidget {
     required this.title,
     this.subtitle,
     required this.onTap,
-    this.trailing,
-  });
+  }) : trailing = null;
 
   @override
   Widget build(BuildContext context) {
@@ -132,9 +132,15 @@ class _SettingsTile extends StatelessWidget {
         ),
         child: Icon(icon, color: theme.colorScheme.primary, size: 22),
       ),
-      title: Text(title, style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w500)),
-      subtitle: subtitle != null ? Text(subtitle!, style: theme.textTheme.bodySmall) : null,
-      trailing: trailing ?? Icon(Icons.chevron_right_rounded, color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.4)),
+      title: Text(title,
+          style: theme.textTheme.titleSmall
+              ?.copyWith(fontWeight: FontWeight.w500)),
+      subtitle: subtitle != null
+          ? Text(subtitle!, style: theme.textTheme.bodySmall)
+          : null,
+      trailing: trailing ??
+          Icon(Icons.chevron_right_rounded,
+              color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.4)),
       onTap: onTap,
     );
   }

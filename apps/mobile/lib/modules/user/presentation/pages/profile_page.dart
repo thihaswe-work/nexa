@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:cached_network_image/cached_network_image.dart';
-import '../../../../shared/widgets/widgets.dart';
 
 class ProfilePage extends ConsumerStatefulWidget {
   final String? userId;
@@ -38,12 +36,16 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                 if (_isOwnProfile) _buildEditButton(theme),
                 const SizedBox(height: 8),
                 _buildSection(theme, 'About', Icons.info_outline_rounded, [
-                  _buildInfoRow(theme, Icons.email_outlined, 'email@example.com'),
-                  _buildInfoRow(theme, Icons.calendar_today_rounded, 'Joined January 2024'),
-                  _buildInfoRow(theme, Icons.location_on_outlined, 'San Francisco, CA'),
+                  _buildInfoRow(
+                      theme, Icons.email_outlined, 'email@example.com'),
+                  _buildInfoRow(theme, Icons.calendar_today_rounded,
+                      'Joined January 2024'),
+                  _buildInfoRow(
+                      theme, Icons.location_on_outlined, 'San Francisco, CA'),
                 ]),
                 const SizedBox(height: 8),
-                _buildSection(theme, 'Interests', Icons.favorite_outline_rounded, [
+                _buildSection(
+                    theme, 'Interests', Icons.favorite_outline_rounded, [
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
@@ -95,7 +97,8 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                   height: 80,
                   decoration: BoxDecoration(
                     color: theme.colorScheme.surface,
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+                    borderRadius:
+                        const BorderRadius.vertical(top: Radius.circular(32)),
                   ),
                 ),
               ),
@@ -131,7 +134,10 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                 shape: BoxShape.circle,
                 border: Border.all(color: theme.colorScheme.surface, width: 4),
                 boxShadow: [
-                  BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 16, offset: const Offset(0, 4)),
+                  BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.1),
+                      blurRadius: 16,
+                      offset: const Offset(0, 4)),
                 ],
               ),
               child: CircleAvatar(
@@ -140,25 +146,31 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                 backgroundImage: null,
                 child: Text(
                   'U',
-                  style: TextStyle(fontSize: 40, fontWeight: FontWeight.w600, color: theme.colorScheme.primary),
+                  style: TextStyle(
+                      fontSize: 40,
+                      fontWeight: FontWeight.w600,
+                      color: theme.colorScheme.primary),
                 ),
               ),
             ),
             const SizedBox(height: 16),
             Text(
               'Display Name',
-              style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700),
+              style: theme.textTheme.headlineSmall
+                  ?.copyWith(fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 4),
             Text(
               '@username',
-              style: theme.textTheme.bodyLarge?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+              style: theme.textTheme.bodyLarge
+                  ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
             ),
             const SizedBox(height: 8),
             Text(
               'Living life one adventure at a time. Coffee addict and sunset chaser.',
               textAlign: TextAlign.center,
-              style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant, height: 1.5),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant, height: 1.5),
             ),
           ],
         ),
@@ -203,7 +215,8 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     );
   }
 
-  Widget _buildSection(ThemeData theme, String title, IconData icon, List<Widget> children) {
+  Widget _buildSection(
+      ThemeData theme, String title, IconData icon, List<Widget> children) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: Card(
@@ -217,7 +230,9 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                 children: [
                   Icon(icon, size: 20, color: theme.colorScheme.primary),
                   const SizedBox(width: 8),
-                  Text(title, style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600)),
+                  Text(title,
+                      style: theme.textTheme.titleSmall
+                          ?.copyWith(fontWeight: FontWeight.w600)),
                 ],
               ),
               const SizedBox(height: 12),
@@ -249,7 +264,9 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         color: theme.colorScheme.primaryContainer,
         borderRadius: BorderRadius.circular(20),
       ),
-      child: Text(label, style: theme.textTheme.labelMedium?.copyWith(color: theme.colorScheme.primary, fontWeight: FontWeight.w500)),
+      child: Text(label,
+          style: theme.textTheme.labelMedium?.copyWith(
+              color: theme.colorScheme.primary, fontWeight: FontWeight.w500)),
     );
   }
 }
@@ -291,9 +308,11 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
                     decoration: BoxDecoration(
                       color: theme.colorScheme.primary,
                       shape: BoxShape.circle,
-                      border: Border.all(color: theme.colorScheme.surface, width: 3),
+                      border: Border.all(
+                          color: theme.colorScheme.surface, width: 3),
                     ),
-                    child: const Icon(Icons.camera_alt_rounded, color: Colors.white, size: 16),
+                    child: const Icon(Icons.camera_alt_rounded,
+                        color: Colors.white, size: 16),
                   ),
                 ),
               ],
@@ -302,18 +321,23 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
           const SizedBox(height: 32),
           TextFormField(
             initialValue: 'Display Name',
-            decoration: const InputDecoration(labelText: 'Display Name', prefixIcon: Icon(Icons.person_outlined)),
+            decoration: const InputDecoration(
+                labelText: 'Display Name',
+                prefixIcon: Icon(Icons.person_outlined)),
           ),
           const SizedBox(height: 16),
           TextFormField(
             initialValue: 'Living life one adventure at a time.',
             maxLines: 3,
-            decoration: const InputDecoration(labelText: 'Bio', prefixIcon: Icon(Icons.edit_outlined)),
+            decoration: const InputDecoration(
+                labelText: 'Bio', prefixIcon: Icon(Icons.edit_outlined)),
           ),
           const SizedBox(height: 16),
           TextFormField(
             initialValue: 'San Francisco, CA',
-            decoration: const InputDecoration(labelText: 'Location', prefixIcon: Icon(Icons.location_on_outlined)),
+            decoration: const InputDecoration(
+                labelText: 'Location',
+                prefixIcon: Icon(Icons.location_on_outlined)),
           ),
           const SizedBox(height: 32),
           FilledButton(

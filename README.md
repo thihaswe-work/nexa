@@ -166,6 +166,95 @@ Each feature module follows clean architecture:
 
 Dependencies point **inward**: Presentation → Application → Domain.
 
+## Project Conventions
+
+### Naming
+
+| Type | Convention | Example |
+|------|-----------|---------|
+| Files | kebab-case | `user.service.ts` |
+| Classes | PascalCase | `UserService` |
+| Functions/Methods | camelCase | `getUserById()` |
+| Variables | camelCase | `userName` |
+| Constants | UPPER_SNAKE | `MAX_FILE_SIZE` |
+| Types/Interfaces | PascalCase with I prefix | `IUser` |
+| DTOs | PascalCase | `CreateUserDto` |
+
+### Git Workflow
+
+1. Branch from `develop`
+2. Use feature branches: `feat/description`, `fix/description`
+3. PR to `develop` for review
+4. Merge to `main` for releases
+
+### Commit Messages
+
+Follow conventional commits: `type(scope): description`
+
+- `feat(api): add user location endpoint`
+- `fix(admin): resolve pagination issue`
+- `chore(deps): upgrade nestjs to v10`
+
+## Testing
+
+### API (Jest)
+
+```bash
+cd apps/api
+npm run test        # Unit tests
+npm run test:e2e    # E2E tests
+npm run test:cov    # Coverage report
+```
+
+### Admin (Jest + Testing Library)
+
+```bash
+cd apps/admin
+npm run test
+```
+
+### Mobile (Flutter Test)
+
+```bash
+cd apps/mobile
+flutter test
+```
+
+## Environment Variables
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `DATABASE_URL` | PostgreSQL connection string | `postgresql://nexa:nexa@localhost:5432/nexa_dev` |
+| `JWT_SECRET` | JWT signing secret | (must set) |
+| `NEXTAUTH_SECRET` | NextAuth encryption key | (must set for admin) |
+
+### Adding New Variables
+
+1. Add to `.env.example` with sensible default
+2. Add to `apps/api/src/config/validation.schema.ts`
+3. Document in README
+
+## Troubleshooting
+
+### Port Conflicts
+
+Default ports:
+- API: 4000
+- Admin: 3000
+- PostgreSQL: 5432
+- Redis: 6379
+- MailHog: 1025 / 8025
+
+Override via environment variables.
+
+### Database Reset
+
+```bash
+docker compose down -v
+npm run docker:dev
+cd apps/api && npx prisma migrate deploy
+```
+
 ## License
 
 MIT
