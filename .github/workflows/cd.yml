@@ -47,7 +47,7 @@ jobs:
       - name: Build & push API image
         uses: docker/build-push-action@v5
         with:
-          context: apps/api
+          context: .
           file: apps/api/Dockerfile
           target: production
           push: true
@@ -70,7 +70,7 @@ jobs:
       - name: Build & push Admin image
         uses: docker/build-push-action@v5
         with:
-          context: apps/admin
+          context: .
           file: apps/admin/Dockerfile
           target: production
           push: true
