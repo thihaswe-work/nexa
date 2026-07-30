@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import '../../../notification/domain/entities/notification.dart';
+import '../../domain/entities/notification.dart';
 
 enum NotificationStatus { initial, loading, loaded, error }
 

@@ -70,12 +70,12 @@ export const validationSchema = Joi.object({
   UPLOAD_DIR: Joi.string().default('./uploads'),
 
   // S3 / Cloudflare R2
-  S3_ENDPOINT: Joi.string().uri().default(''),
+  S3_ENDPOINT: Joi.string().uri().allow('').default(''),
   S3_REGION: Joi.string().default('auto'),
   S3_BUCKET: Joi.string().default('nexa-uploads'),
   S3_ACCESS_KEY_ID: Joi.string().allow('').default(''),
   S3_SECRET_ACCESS_KEY: Joi.string().allow('').default(''),
-  S3_PUBLIC_URL: Joi.string().uri().default(''),
+  S3_PUBLIC_URL: Joi.string().uri().allow('').default(''),
   S3_SIGNED_URL_EXPIRY: Joi.number().default(3600),
 
   // Logging

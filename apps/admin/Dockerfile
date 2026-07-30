@@ -1,40 +1,40 @@
-# ---- Dependencies Stage ----
-FROM node:20-alpine AS deps
-LABEL stage=deps
-
-WORKDIR /app
-
-COPY package*.json ./
-RUN npm ci
-
-# ---- Build Stage ----
 FROM node:20-alpine AS builder
 LABEL stage=builder
 
 WORKDIR /app
 
+RUN apk add --no-cache openssl
+
 COPY package*.json ./
+COPY packages/eslint-config/package.json packages/eslint-config/
+COPY packages/shared/package.json packages/shared/
+COPY packages/tsconfig/ packages/tsconfig/
+COPY apps/admin/package*.json apps/admin/
+
 RUN npm ci
 
-COPY next.config.js tsconfig.json ./
-COPY public/ ./public/
-COPY src/ ./src/
+COPY apps/admin/next.config.js apps/admin/tsconfig.json apps/admin/postcss.config.js apps/admin/tailwind.config.ts apps/admin/
+COPY apps/admin/src apps/admin/src
+
+WORKDIR /app/apps/admin
 RUN npm run build
 
-# ---- Production Stage ----
 FROM node:20-alpine AS production
-
 WORKDIR /app
 
 RUN apk add --no-cache tini curl
 
 COPY package*.json ./
-RUN npm ci --only=production --ignore-scripts && \
+COPY packages/eslint-config/package.json packages/eslint-config/
+COPY packages/shared/package.json packages/shared/
+COPY packages/tsconfig/ packages/tsconfig/
+COPY apps/admin/package*.json apps/admin/
+
+RUN npm install --omit=dev --workspace=@nexa/admin && \
     npm cache clean --force
 
-COPY --from=builder /app/.next/standalone ./
-COPY --from=builder /app/.next/static ./.next/static
-COPY --from=builder /app/public ./public
+COPY --from=builder /app/apps/admin/.next/standalone ./
+COPY --from=builder /app/apps/admin/.next/static ./.next/static
 
 ENV NODE_ENV=production
 ENV PORT=3000

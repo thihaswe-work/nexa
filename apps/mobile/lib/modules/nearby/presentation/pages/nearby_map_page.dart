@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:go_router/go_router.dart';
+import '../../domain/entities/nearby_user.dart';
 import '../providers/nearby_provider.dart';
 import '../providers/nearby_state.dart';
 import '../../../../shared/widgets/widgets.dart';
@@ -71,7 +72,7 @@ class NearbyMapPage extends ConsumerWidget {
                 child: const Icon(Icons.my_location, color: Colors.white, size: 20),
               ),
             ),
-            ...state.nearbyUsers.map((user) {
+            ...state.nearbyUsers.where((u) => u.profile.lat != null && u.profile.lng != null).map((user) {
               return Marker(
                 point: LatLng(user.profile.lat!, user.profile.lng!),
                 width: 40,
@@ -102,7 +103,7 @@ class NearbyMapPage extends ConsumerWidget {
     );
   }
 
-  void _showUserTooltip(BuildContext context, dynamic user) {
+  void _showUserTooltip(BuildContext context, NearbyUser user) {
     showModalBottomSheet(
       context: context,
       builder: (ctx) => Padding(
@@ -115,7 +116,7 @@ class NearbyMapPage extends ConsumerWidget {
               name: user.profile.displayName,
               size: 64,
               showOnline: true,
-              isOnline: user.isOnline ?? false,
+              isOnline: user.lastSeen != null && DateTime.now().difference(user.lastSeen!).inMinutes < 5,
             ),
             const SizedBox(height: 16),
             Text(user.profile.displayName, style: Theme.of(ctx).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600)),
@@ -133,7 +134,7 @@ class NearbyMapPage extends ConsumerWidget {
               children: [
                 Expanded(
                   child: FilledButton(
-                    onPressed: () { Navigator.pop(ctx); context.push('/chat/new?userId=${user.id}'); },
+                    onPressed: () { Navigator.pop(ctx); context.push('/chat?start=${user.userId}'); },
                     child: const Text('Send Message'),
                   ),
                 ),

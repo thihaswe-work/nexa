@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import '../../../../core/utils/typedefs.dart';
 
 class Conversation extends Equatable {
   final String id;
@@ -74,6 +75,25 @@ class ConversationParticipant extends Equatable {
     this.lastReadAt,
     this.lastDeliveredAt,
   });
+
+  factory ConversationParticipant.fromJson(JsonMap json) =>
+      ConversationParticipant(
+        userId: json['userId'] as String,
+        displayName: json['displayName'] as String,
+        avatarUrl: json['avatarUrl'] as String?,
+        joinedAt: json['joinedAt'] as String?,
+        lastReadAt: json['lastReadAt'] as String?,
+        lastDeliveredAt: json['lastDeliveredAt'] as String?,
+      );
+
+  JsonMap toJson() => {
+        'userId': userId,
+        'displayName': displayName,
+        'avatarUrl': avatarUrl,
+        'joinedAt': joinedAt,
+        'lastReadAt': lastReadAt,
+        'lastDeliveredAt': lastDeliveredAt,
+      };
 
   @override
   List<Object?> get props => [

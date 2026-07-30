@@ -1,5 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 import '../../../../core/utils/typedefs.dart';
+import '../../../user/domain/entities/profile.dart';
 import '../../domain/entities/nearby_user.dart';
 
 part 'nearby_user_model.g.dart';

@@ -107,7 +107,7 @@ class _ChatConversationPageState extends ConsumerState<ChatConversationPage> {
           ],
         ),
         actions: [
-          IconButton(icon: const Icon(Icons.more_vert_rounded), onPressed: () => _showChatOptions(context, conversation?.name ?? otherName)),
+          IconButton(icon: const Icon(Icons.more_vert_rounded), onPressed: () => _showChatOptions(context, conversation?.name ?? otherName, otherUserId)),
         ],
       ),
       body: Column(
@@ -215,38 +215,41 @@ class _ChatConversationPageState extends ConsumerState<ChatConversationPage> {
     return _AnimatedDot(delay: delay, color: theme.colorScheme.onSurfaceVariant);
   }
 
-  void _showChatOptions(BuildContext context, String name) {
+  void _showChatOptions(BuildContext context, String name, String otherUserId) {
     showModalBottomSheet(
       context: context,
-      builder: (ctx) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(8),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                child: Text(name, style: Theme.of(ctx).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
-              ),
-              ListTile(
-                leading: const Icon(Icons.person_outline_rounded),
-                title: const Text('View Profile'),
-                onTap: () { Navigator.pop(ctx); context.push('/profile/$otherUserId'); },
-              ),
-              ListTile(
-                leading: const Icon(Icons.block_rounded),
-                title: const Text('Block User'),
-                onTap: () { Navigator.pop(ctx); },
-              ),
-              ListTile(
-                leading: Icon(Icons.flag_outlined, color: theme.colorScheme.error),
-                title: Text('Report', style: TextStyle(color: theme.colorScheme.error)),
-                onTap: () { Navigator.pop(ctx); },
-              ),
-            ],
+      builder: (ctx) {
+        final colors = Theme.of(ctx).colorScheme;
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(8),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Text(name, style: Theme.of(ctx).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.person_outline_rounded),
+                  title: const Text('View Profile'),
+                  onTap: () { Navigator.pop(ctx); context.push('/profile/$otherUserId'); },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.block_rounded),
+                  title: const Text('Block User'),
+                  onTap: () { Navigator.pop(ctx); },
+                ),
+                ListTile(
+                  leading: Icon(Icons.flag_outlined, color: colors.error),
+                  title: Text('Report', style: TextStyle(color: colors.error)),
+                  onTap: () { Navigator.pop(ctx); },
+                ),
+              ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

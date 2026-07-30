@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../../../../../core/utils/typedefs.dart';
-import '../../domain/entities/message.dart';
+import '../../../domain/entities/message.dart';
 
 final chatLocalDataSourceProvider = Provider<ChatLocalDataSource>((ref) {
   return ChatLocalDataSource();

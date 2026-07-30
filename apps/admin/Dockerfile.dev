@@ -1,13 +1,19 @@
 FROM node:20-alpine
-
 WORKDIR /app
 
 RUN apk add --no-cache openssl
 
 COPY package*.json ./
-RUN npm ci
+COPY packages/eslint-config/package.json packages/eslint-config/
+COPY packages/shared/package.json packages/shared/
+COPY packages/tsconfig/package.json packages/tsconfig/
+COPY apps/admin/package*.json apps/admin/
 
-COPY . .
+RUN npm install
+
+COPY apps/admin/ apps/admin/
+
+WORKDIR /app/apps/admin
 
 EXPOSE 3000
 

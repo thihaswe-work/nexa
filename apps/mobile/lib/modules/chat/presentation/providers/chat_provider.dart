@@ -4,6 +4,7 @@ import '../../data/datasources/chat_remote_datasource.dart';
 import '../../data/datasources/chat_socket_datasource.dart';
 import '../../data/datasources/local/chat_local_datasource.dart';
 import '../../data/repositories/chat_repository_impl.dart';
+import '../../domain/entities/conversation.dart';
 import '../../domain/entities/message.dart';
 import '../../domain/repositories/chat_repository.dart';
 import 'chat_state.dart';

@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import '../../../../core/utils/typedefs.dart';
 
 class Profile extends Equatable {
   final String userId;
@@ -28,6 +29,41 @@ class Profile extends Equatable {
     this.interests = const [],
     required this.createdAt,
   });
+
+  factory Profile.fromJson(JsonMap json) => Profile(
+        userId: json['userId'] as String,
+        displayName: json['displayName'] as String,
+        bio: json['bio'] as String?,
+        avatarUrl: json['avatarUrl'] as String?,
+        coverUrl: json['coverUrl'] as String?,
+        lat: (json['lat'] as num?)?.toDouble(),
+        lng: (json['lng'] as num?)?.toDouble(),
+        showNearby: json['showNearby'] as bool? ?? true,
+        birthDate: json['birthDate'] == null
+            ? null
+            : DateTime.parse(json['birthDate'] as String),
+        gender: json['gender'] as String?,
+        interests: (json['interests'] as List<dynamic>?)
+                ?.map((e) => e as String)
+                .toList() ??
+            const [],
+        createdAt: DateTime.parse(json['createdAt'] as String),
+      );
+
+  JsonMap toJson() => {
+        'userId': userId,
+        'displayName': displayName,
+        'bio': bio,
+        'avatarUrl': avatarUrl,
+        'coverUrl': coverUrl,
+        'lat': lat,
+        'lng': lng,
+        'showNearby': showNearby,
+        'birthDate': birthDate?.toIso8601String(),
+        'gender': gender,
+        'interests': interests,
+        'createdAt': createdAt.toIso8601String(),
+      };
 
   Profile copyWith({
     String? userId,

@@ -1,7 +1,11 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:nexa_mobile/core/errors/failures.dart';
+import 'package:nexa_mobile/modules/chat/data/datasources/chat_socket_datasource.dart';
+import 'package:nexa_mobile/modules/chat/data/datasources/local/chat_local_datasource.dart';
+import 'package:nexa_mobile/modules/chat/domain/repositories/chat_repository.dart';
 import 'package:nexa_mobile/modules/chat/presentation/providers/chat_provider.dart';
 import 'package:nexa_mobile/modules/chat/presentation/providers/chat_state.dart';
 import '../../helpers/mocks.dart';
@@ -103,8 +107,8 @@ void main() {
       });
 
       test('should handle error when loading conversations', () async {
-        when(() => mockRepository.getConversations())
-            .thenAnswer((_) async => Left(ServerFailure(message: 'Network error')));
+        when(() => mockRepository.getConversations()).thenAnswer(
+            (_) async => Left(ServerFailure(message: 'Network error')));
 
         await notifier.loadConversations();
 
@@ -126,8 +130,8 @@ void main() {
       });
 
       test('should handle error when loading messages', () async {
-        when(() => mockRepository.getMessages('conv-1'))
-            .thenAnswer((_) async => Left(ServerFailure(message: 'Conversation not found')));
+        when(() => mockRepository.getMessages('conv-1')).thenAnswer((_) async =>
+            Left(ServerFailure(message: 'Conversation not found')));
 
         await notifier.loadMessages('conv-1');
 
@@ -148,8 +152,8 @@ void main() {
       });
 
       test('should set error on send failure', () async {
-        when(() => mockRepository.sendMessage('conv-1', 'Hi!'))
-            .thenAnswer((_) async => Left(ServerFailure(message: 'Failed to send')));
+        when(() => mockRepository.sendMessage('conv-1', 'Hi!')).thenAnswer(
+            (_) async => Left(ServerFailure(message: 'Failed to send')));
 
         await notifier.sendMessage('conv-1', 'Hi!');
 

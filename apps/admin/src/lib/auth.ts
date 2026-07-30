@@ -2,7 +2,7 @@ import { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import axios from 'axios';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
+const API_URL = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 
 async function refreshAccessToken(token: any) {
   try {
@@ -10,7 +10,7 @@ async function refreshAccessToken(token: any) {
       refreshToken: token.refreshToken,
     });
 
-    const data = response.data;
+    const data = response.data.data;
 
     return {
       ...token,
@@ -40,7 +40,7 @@ export const authOptions: NextAuthOptions = {
             password: credentials.password,
           });
 
-          const { user, accessToken, refreshToken } = response.data;
+          const { user, tokens } = response.data.data;
 
           if (!user.isActive) return null;
 
@@ -53,8 +53,8 @@ export const authOptions: NextAuthOptions = {
             role: user.role,
             isActive: user.isActive,
             emailVerified: user.emailVerified,
-            accessToken,
-            refreshToken,
+            accessToken: tokens.accessToken,
+            refreshToken: tokens.refreshToken,
           };
         } catch {
           return null;

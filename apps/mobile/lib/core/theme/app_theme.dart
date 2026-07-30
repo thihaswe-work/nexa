@@ -119,7 +119,7 @@ class AppTheme {
       badgeTheme: _buildBadgeTheme(colorScheme),
       listTileTheme: _buildListTileTheme(colorScheme),
       popupMenuTheme: _buildPopupMenuTheme(colorScheme, isLight),
-      bottomAppBarTheme: BottomAppBarTheme(
+      bottomAppBarTheme: BottomAppBarThemeData(
         color: isLight ? Colors.white : AppColors.cardDark,
         elevation: 0,
       ),
@@ -253,8 +253,8 @@ class AppTheme {
     );
   }
 
-  static CardTheme _buildCardTheme(ColorScheme colors, bool isLight) {
-    return CardTheme(
+  static CardThemeData _buildCardTheme(ColorScheme colors, bool isLight) {
+    return CardThemeData(
       color: isLight ? Colors.white : AppColors.cardDark,
       elevation: 0,
       shadowColor: Colors.black.withValues(alpha: isLight ? 0.04 : 0.2),
@@ -289,8 +289,8 @@ class AppTheme {
     );
   }
 
-  static DialogTheme _buildDialogTheme(ColorScheme colors, bool isLight) {
-    return DialogTheme(
+  static DialogThemeData _buildDialogTheme(ColorScheme colors, bool isLight) {
+    return DialogThemeData(
       backgroundColor: isLight ? Colors.white : AppColors.cardDark,
       elevation: 0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(_radiusXl)),

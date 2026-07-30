@@ -1,8 +1,8 @@
 export const QUEUES = {
-  MESSAGE: 'notifications:message',
-  FRIEND_REQUEST: 'notifications:friend-request',
-  NEARBY_INVITE: 'notifications:nearby-invite',
-  ANNOUNCEMENT: 'notifications:announcement',
+  MESSAGE: 'notifications.message',
+  FRIEND_REQUEST: 'notifications.friend-request',
+  NEARBY_INVITE: 'notifications.nearby-invite',
+  ANNOUNCEMENT: 'notifications.announcement',
 } as const;
 
 export const JOBS = {

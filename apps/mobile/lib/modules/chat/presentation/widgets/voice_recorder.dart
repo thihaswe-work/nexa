@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -39,22 +40,23 @@ class _VoiceRecorderState extends State<VoiceRecorder>
 
   Future<void> _startRecording() async {
     final hasPerm = await Permission.microphone.request();
-    if (!hasPerm) {
+    if (!hasPerm.isGranted) {
       widget.onCancel();
       return;
     }
-    final path = await _recorder.start(
+    final dir = await getTemporaryDirectory();
+    final recordPath = '${dir.path}/recording_${DateTime.now().millisecondsSinceEpoch}.m4a';
+    await _recorder.start(
       const RecordConfig(
         encoder: AudioEncoder.aacLc,
         bitRate: 128000,
       ),
+      path: recordPath,
     );
-    if (path != null) {
-      setState(() => _isRecording = true);
-      _timer = Timer.periodic(const Duration(seconds: 1), (_) {
-        setState(() => _recordDuration++);
-      });
-    }
+    setState(() => _isRecording = true);
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      setState(() => _recordDuration++);
+    });
   }
 
   Future<void> _stopRecording() async {

@@ -42,26 +42,66 @@ nexa/
 
 ## Quick Start
 
+### Backend + Admin (Docker — recommended)
+
 ```bash
-# 1. Clone and install
+# 1. Clone and install dependencies
 git clone https://github.com/your-org/nexa.git
 cd nexa
 npm install
 
-# 2. Start infrastructure (PostgreSQL + Redis)
+# 2. Start everything (API + Admin + PostgreSQL + Redis)
 npm run docker:dev
-
-# 3. Copy environment files
-cp .env.example .env
-cp apps/api/.env.example apps/api/.env
-cp apps/admin/.env.example apps/admin/.env
-
-# 4. Run database migrations
-npm run api:dev -- npm run migration:run
-
-# 5. Start development
-npm run dev
 ```
+
+The API is at `http://localhost:4000/api/v1` and Admin at `http://localhost:3000`.
+
+> The dev Docker setup uses hot-reload — changes to `apps/api/src/` or `apps/admin/src/` are reflected immediately.
+
+### Backend + Admin (Native — without Docker)
+
+```bash
+# 1. Install and start infrastructure
+npm install
+npm run docker:dev       # starts only PostgreSQL + Redis containers
+
+# 2. Copy environment files
+copy .env.example .env
+copy apps/api/.env.example apps/api/.env
+copy apps/admin/.env.example apps/admin/.env
+
+# 3. Run database migrations
+cd apps/api
+npx prisma migrate deploy
+npx prisma generate
+cd ..
+
+# 4. Start each app in a separate terminal
+npm run api:dev     # Terminal 1 — API on port 4000
+npm run admin:dev   # Terminal 2 — Admin on port 3000
+```
+
+### Mobile App (Flutter)
+
+```bash
+# 1. Make sure the API is running (Docker or native)
+
+# 2. Install Flutter dependencies
+cd apps/mobile
+flutter pub get
+
+# 3. Generate JSON serialization code
+dart run build_runner build --delete-conflicting-outputs
+
+# 4. Run on device/emulator
+flutter run
+```
+
+> **Note**: The mobile app expects the API at `http://localhost:4000/api/v1` by default.
+> To change this, set the `API_BASE_URL` compile-time variable:
+> ```bash
+> flutter run --dart-define=API_BASE_URL=https://your-api.com/api/v1
+> ```
 
 ## Project Structure
 
@@ -69,20 +109,25 @@ npm run dev
 
 ```
 lib/
-├── core/               # Shared infrastructure
+├── core/               # Shared infrastructure & utilities
+│   ├── config/         # App configuration
 │   ├── constants/      # App & API constants
 │   ├── errors/         # Exception & failure classes
-│   ├── network/        # HTTP client, interceptors
+│   ├── network/        # HTTP client, auth interceptors
+│   ├── router/         # GoRouter setup & redirects
+│   ├── services/       # Location service
+│   ├── socket/         # WebSocket client
+│   ├── storage/        # Secure token storage
 │   ├── theme/          # Colors, text styles, theme
-│   └── utils/          # General utilities
-└── features/           # Feature modules
-    ├── auth/           # Authentication
-    │   ├── data/       # Data sources, models, repo impl
-    │   ├── domain/     # Entities, repo interfaces, use cases
-    │   └── presentation/ # Pages, providers, widgets
-    ├── location/       # Location services
-    ├── social/         # Social interactions
-    └── profile/        # User profile
+│   └── utils/          # Type definitions
+├── modules/            # Feature modules (clean architecture)
+│   ├── auth/           # Login, register, session
+│   ├── chat/           # Conversations, messages, reactions
+│   ├── nearby/         # Location-based user discovery
+│   ├── notification/   # Push & in-app notifications
+│   ├── settings/       # App settings & privacy
+│   └── user/           # Profile, interests
+└── shared/             # Reusable widgets (avatar, skeleton, etc.)
 ```
 
 ### Backend API (`apps/api/`)
@@ -127,15 +172,18 @@ src/
 
 ## Available Scripts
 
-| Command              | Description                         |
-| -------------------- | ----------------------------------- |
-| `npm run dev`        | Start all apps in development mode  |
-| `npm run build`      | Build all apps for production       |
-| `npm run lint`       | Lint all packages                   |
-| `npm run test`       | Run all tests                       |
-| `npm run api:dev`    | Start API only                      |
-| `npm run admin:dev`  | Start admin only                    |
-| `npm run docker:dev` | Start infrastructure containers     |
+| Command              | Description                                  |
+| -------------------- | -------------------------------------------- |
+| `npm run dev`        | Start all apps in development mode (native)  |
+| `npm run build`      | Build all apps for production                |
+| `npm run lint`       | Lint all packages                            |
+| `npm run test`       | Run all tests                                |
+| `npm run api:dev`    | Start API only (native)                      |
+| `npm run admin:dev`  | Start admin only (native)                    |
+| `npm run docker:dev` | Start full dev stack (API + Admin + infra)   |
+| `npm run docker:prod`| Start production stack                       |
+| `cd apps/mobile && flutter run` | Run mobile app                    |
+| `cd apps/mobile && flutter build apk` | Build mobile APK              |
 
 ## Environment Variables
 
@@ -148,11 +196,11 @@ Copy the example files and adjust:
 ## Docker
 
 ```bash
-# Development (infrastructure only)
+# Development — full stack with hot-reload (API + Admin + PostgreSQL + Redis)
 npm run docker:dev
 
-# Full production stack
-docker compose up --build
+# Production — build and start all services
+npm run docker:prod
 ```
 
 ## Clean Architecture Layers
@@ -213,11 +261,13 @@ cd apps/admin
 npm run test
 ```
 
-### Mobile (Flutter Test)
+### Mobile (Flutter)
 
 ```bash
 cd apps/mobile
-flutter test
+flutter test          # Run tests
+flutter analyze       # Static analysis
+dart run build_runner build  # Regenerate .g.dart files
 ```
 
 ## Environment Variables
@@ -228,11 +278,25 @@ flutter test
 | `JWT_SECRET` | JWT signing secret | (must set) |
 | `NEXTAUTH_SECRET` | NextAuth encryption key | (must set for admin) |
 
+### Mobile App (Dart-define)
+
+The mobile app uses compile-time constants passed via `--dart-define`:
+
+```bash
+flutter run --dart-define=API_BASE_URL=https://api.nexa.app/api/v1
+```
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `API_BASE_URL` | Backend API base URL | `http://localhost:4000/api/v1` |
+| `WS_URL` | WebSocket server URL | `http://localhost:4000` |
+
 ### Adding New Variables
 
 1. Add to `.env.example` with sensible default
 2. Add to `apps/api/src/config/validation.schema.ts`
-3. Document in README
+3. Add Dart `--dart-define` entries in `apps/mobile/lib/core/config/app_config.dart`
+4. Document in README
 
 ## Troubleshooting
 
@@ -250,9 +314,9 @@ Override via environment variables.
 ### Database Reset
 
 ```bash
-docker compose down -v
+docker compose -f docker-compose.dev.yml down -v
 npm run docker:dev
-cd apps/api && npx prisma migrate deploy
+cd apps/api && npx prisma migrate deploy && npx prisma generate
 ```
 
 ## License

@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
-import '../../../nearby/domain/entities/location.dart';
-import '../../../nearby/domain/entities/nearby_user.dart';
+import '../../domain/entities/location.dart';
+import '../../domain/entities/nearby_user.dart';
 
 enum NearbyStatus { initial, loading, loaded, error }
 

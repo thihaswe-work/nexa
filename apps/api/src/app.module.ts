@@ -19,6 +19,7 @@ import { WsModule } from './modules/ws/ws.module';
 import { ChatModule } from './modules/chat/chat.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { FilesModule } from './modules/files/files.module';
+import { AdminModule } from './modules/admin/admin.module';
 
 @Module({
   imports: [
@@ -58,6 +59,7 @@ import { FilesModule } from './modules/files/files.module';
     ChatModule,
     NotificationsModule,
     FilesModule,
+    AdminModule,
   ],
   providers: [
     {

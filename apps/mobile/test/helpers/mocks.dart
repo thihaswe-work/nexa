@@ -31,7 +31,8 @@ class MockChatRepository extends Mock implements ChatRepository {}
 
 class MockNearbyRepository extends Mock implements NearbyRepository {}
 
-class MockNotificationRepository extends Mock implements NotificationRepository {}
+class MockNotificationRepository extends Mock
+    implements NotificationRepository {}
 
 class MockSettingsRepository extends Mock implements SettingsRepository {}
 

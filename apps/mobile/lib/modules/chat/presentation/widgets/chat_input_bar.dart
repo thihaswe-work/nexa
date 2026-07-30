@@ -129,10 +129,10 @@ class _ChatInputBarState extends State<ChatInputBar> {
                       padding: const EdgeInsets.only(bottom: 4, right: 4),
                       child: Material(
                         color: theme.colorScheme.primary,
-                        shape: const CircleAvatar(),
+                        shape: const CircleBorder(),
                         child: InkWell(
-                          customBorder: const CircleAvatar(),
-                          onPressed: _sendText,
+                          customBorder: const CircleBorder(),
+                          onTap: _sendText,
                           child: Container(
                             width: 36,
                             height: 36,

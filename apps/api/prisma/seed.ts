@@ -1,5 +1,5 @@
-import { PrismaClient, UserRole, UserStatus } from '@prisma/client';
-import * as bcrypt from 'bcrypt';
+import { PrismaClient } from '@prisma/client';
+import * as argon2 from 'argon2';
 
 const prisma = new PrismaClient();
 
@@ -88,7 +88,7 @@ async function main() {
   }
 
   // Create admin user
-  const adminPassword = await bcrypt.hash('admin123', 12);
+  const adminPassword = await argon2.hash('admin123');
 
   const adminUser = await prisma.user.upsert({
     where: { email: 'admin@nexa.app' },
@@ -111,7 +111,7 @@ async function main() {
   console.log(`  ✓ Admin user: ${adminUser.email} / admin123`);
 
   // Create demo users
-  const demoPassword = await bcrypt.hash('password123', 12);
+  const demoPassword = await argon2.hash('password123');
 
   const demoUsers = [
     { username: 'alice', email: 'alice@nexa.app', displayName: 'Alice Johnson', lat: 40.7128, lng: -74.006 },

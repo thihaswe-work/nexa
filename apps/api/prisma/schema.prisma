@@ -528,6 +528,7 @@ model Device {
 // TIP: Run periodic cleanup of expired tokens:
 //   DELETE FROM refresh_tokens
 //   WHERE expires_at < NOW() AND revoked_at IS NOT NULL;
+model RefreshToken {
   id        String   @id @default(uuid()) @db.Uuid
   userId    String   @map("user_id") @db.Uuid
   token     String   @unique @db.VarChar(512)

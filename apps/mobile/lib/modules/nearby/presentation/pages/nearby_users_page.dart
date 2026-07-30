@@ -44,7 +44,7 @@ class NearbyUsersPage extends ConsumerWidget {
         itemCount: state.nearbyUsers.length,
         itemBuilder: (context, index) {
           final user = state.nearbyUsers[index];
-          final isOnline = user.isOnline ?? false;
+          final isOnline = user.lastSeen != null && DateTime.now().difference(user.lastSeen!).inMinutes < 5;
           final distance = _formatDistance(user.distance);
 
           return NexaFadeIn(
@@ -52,7 +52,7 @@ class NearbyUsersPage extends ConsumerWidget {
             child: Card(
               margin: const EdgeInsets.only(bottom: 12),
               child: InkWell(
-                onTap: () => context.push('/profile/${user.id}'),
+                onTap: () => context.push('/profile/${user.userId}'),
                 borderRadius: BorderRadius.circular(16),
                 child: Padding(
                   padding: const EdgeInsets.all(14),

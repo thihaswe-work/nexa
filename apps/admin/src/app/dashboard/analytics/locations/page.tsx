@@ -1,13 +1,22 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import { useLocationActivity } from '@/lib/hooks/use-admin';
 import { PageHeader } from '@/components/shared/page-header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
 
+const GoogleMapsMap = dynamic(() => import('@/components/shared/google-maps-map'), { ssr: false });
+
 export default function LocationActivityPage() {
   const { data, isLoading } = useLocationActivity();
+
+  const locations = (data ?? []).map((loc) => ({
+    lat: loc.lat,
+    lng: loc.lng,
+    label: loc.username,
+  }));
 
   return (
     <div className="space-y-6">
@@ -21,15 +30,13 @@ export default function LocationActivityPage() {
           <CardTitle>Map View</CardTitle>
         </CardHeader>
         <CardContent>
-          {isLoading ? (
-            <Skeleton className="h-[400px]" />
-          ) : (
-            <div className="flex h-[400px] items-center justify-center rounded-lg border bg-muted/20">
-              <p className="text-sm text-muted-foreground">
-                Map integration requires a map provider (Google Maps / Mapbox)
-              </p>
-            </div>
-          )}
+          <div className="h-[400px] rounded-lg overflow-hidden">
+            {isLoading ? (
+              <Skeleton className="h-full w-full" />
+            ) : (
+              <GoogleMapsMap locations={locations} />
+            )}
+          </div>
         </CardContent>
       </Card>
 

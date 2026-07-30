@@ -1,16 +1,24 @@
 FROM node:20-alpine
-
 WORKDIR /app
 
 RUN apk add --no-cache openssl
 
 COPY package*.json ./
-RUN npm ci
+COPY packages/eslint-config/package.json packages/eslint-config/
+COPY packages/shared/package.json packages/shared/
+COPY packages/tsconfig/package.json packages/tsconfig/
+COPY apps/api/package*.json apps/api/
+COPY apps/api/tsconfig*.json apps/api/
+COPY apps/api/nest-cli.json apps/api/
 
-COPY prisma/ ./prisma/
-RUN npx prisma generate
+RUN npm install
 
-COPY . .
+COPY apps/api/prisma apps/api/prisma
+RUN cd apps/api && npx prisma generate
+
+COPY apps/api/src apps/api/src
+
+WORKDIR /app/apps/api
 
 EXPOSE 4000
 

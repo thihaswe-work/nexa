@@ -1,5 +1,3 @@
-version: "3.9"
-
 x-logging: &default-logging
   driver: "json-file"
   options:
@@ -77,18 +75,20 @@ services:
 
   api:
     build:
-      context: ./apps/api
-      dockerfile: Dockerfile.dev
+      context: .
+      dockerfile: apps/api/Dockerfile.dev
     container_name: nexa-api-dev
     restart: unless-stopped
     volumes:
-      - ./apps/api/src:/app/src
+      - ./apps/api/src:/app/apps/api/src
       - ./packages:/app/packages
     environment:
       NODE_ENV: development
       PORT: 4000
+      API_PREFIX: /api
       DATABASE_URL: postgresql://nexa:nexa@postgres:5432/nexa_dev?schema=public
       REDIS_URL: redis://redis:6379
+      CORS_ORIGINS: http://localhost:3000,http://127.0.0.1:3000,http://localhost:4000
       JWT_SECRET: dev-jwt-secret-do-not-use-in-production
     ports:
       - "4000:4000"
@@ -102,16 +102,18 @@ services:
 
   admin:
     build:
-      context: ./apps/admin
-      dockerfile: Dockerfile.dev
+      context: .
+      dockerfile: apps/admin/Dockerfile.dev
     container_name: nexa-admin-dev
     restart: unless-stopped
     volumes:
-      - ./apps/admin/src:/app/src
+      - ./apps/admin/src:/app/apps/admin/src
       - ./packages:/app/packages
     environment:
       NODE_ENV: development
+      API_URL: http://nexa-api-dev:4000/api/v1
       NEXT_PUBLIC_API_URL: http://localhost:4000/api/v1
+      NEXT_PUBLIC_GOOGLE_MAPS_KEY: ""
       NEXTAUTH_URL: http://localhost:3000
       NEXTAUTH_SECRET: dev-nextauth-secret
     ports:

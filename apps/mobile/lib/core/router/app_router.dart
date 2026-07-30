@@ -16,11 +16,15 @@ import '../../modules/settings/presentation/pages/privacy_settings_page.dart';
 import '../../modules/user/presentation/pages/profile_page.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
-  final authNotifier = ref.read(authNotifierProvider.notifier);
+  final authListenable = ValueNotifier<int>(0);
+
+  ref.listen<AuthState>(authNotifierProvider, (_, __) {
+    authListenable.value++;
+  });
 
   final router = GoRouter(
     initialLocation: '/splash',
-    refreshListenable: authNotifier,
+    refreshListenable: authListenable,
     redirect: (context, state) {
       final authState = ref.read(authNotifierProvider);
       final isAuth = authState.status == AuthStatus.authenticated;

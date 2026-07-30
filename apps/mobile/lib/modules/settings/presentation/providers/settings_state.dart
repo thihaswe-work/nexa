@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import '../../../settings/domain/entities/app_settings.dart';
+import '../../domain/entities/app_settings.dart';
 
 enum SettingsStatus { initial, loading, loaded, error }
 

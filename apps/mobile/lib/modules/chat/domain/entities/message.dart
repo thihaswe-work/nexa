@@ -1,4 +1,6 @@
 import 'package:equatable/equatable.dart';
+import '../../../../core/utils/typedefs.dart';
+import 'message_reaction.dart';
 
 class Message extends Equatable {
   final String id;
@@ -78,6 +80,30 @@ class MessageAttachment extends Equatable {
     this.duration,
   });
 
+  factory MessageAttachment.fromJson(JsonMap json) => MessageAttachment(
+        id: json['id'] as String,
+        type: json['type'] as String,
+        url: json['url'] as String,
+        fileName: json['fileName'] as String?,
+        fileSize: json['fileSize'] as int?,
+        mimeType: json['mimeType'] as String?,
+        width: json['width'] as int?,
+        height: json['height'] as int?,
+        duration: json['duration'] as int?,
+      );
+
+  JsonMap toJson() => {
+        'id': id,
+        'type': type,
+        'url': url,
+        'fileName': fileName,
+        'fileSize': fileSize,
+        'mimeType': mimeType,
+        'width': width,
+        'height': height,
+        'duration': duration,
+      };
+
   @override
   List<Object?> get props => [
         id,
@@ -104,6 +130,20 @@ class ReplyPreview extends Equatable {
     required this.senderId,
     required this.senderName,
   });
+
+  factory ReplyPreview.fromJson(JsonMap json) => ReplyPreview(
+        id: json['id'] as String,
+        content: json['content'] as String,
+        senderId: json['senderId'] as String,
+        senderName: json['senderName'] as String,
+      );
+
+  JsonMap toJson() => {
+        'id': id,
+        'content': content,
+        'senderId': senderId,
+        'senderName': senderName,
+      };
 
   @override
   List<Object?> get props => [id, content, senderId, senderName];

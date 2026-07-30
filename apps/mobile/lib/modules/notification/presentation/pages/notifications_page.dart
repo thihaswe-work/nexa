@@ -28,7 +28,8 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
       body: NexaEmptyState(
         icon: Icons.notifications_outlined,
         title: 'No notifications yet',
-        subtitle: 'We\'ll let you know when someone messages you or wants to connect',
+        subtitle:
+            'We\'ll let you know when someone messages you or wants to connect',
       ),
     );
   }
@@ -50,14 +51,16 @@ class NotificationCard extends StatelessWidget {
     required this.time,
     this.isRead = false,
     this.icon = Icons.notifications_rounded,
-    this.iconColor,
+    required this.iconColor,
     this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final bgColor = isRead ? theme.colorScheme.surface : theme.colorScheme.primaryContainer.withValues(alpha: 0.3);
+    final bgColor = isRead
+        ? theme.colorScheme.surface
+        : theme.colorScheme.primaryContainer.withValues(alpha: 0.3);
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -77,10 +80,10 @@ class NotificationCard extends StatelessWidget {
                 width: 42,
                 height: 42,
                 decoration: BoxDecoration(
-                  color: (iconColor ?? theme.colorScheme.primary).withValues(alpha: 0.12),
+                  color: iconColor.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(icon, color: iconColor ?? theme.colorScheme.primary, size: 22),
+                child: Icon(icon, color: iconColor, size: 22),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -93,11 +96,14 @@ class NotificationCard extends StatelessWidget {
                           child: Text(
                             title,
                             style: theme.textTheme.titleSmall?.copyWith(
-                              fontWeight: isRead ? FontWeight.w500 : FontWeight.w600,
+                              fontWeight:
+                                  isRead ? FontWeight.w500 : FontWeight.w600,
                             ),
                           ),
                         ),
-                        Text(time, style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+                        Text(time,
+                            style: theme.textTheme.labelSmall?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant)),
                       ],
                     ),
                     const SizedBox(height: 4),
@@ -106,7 +112,9 @@ class NotificationCard extends StatelessWidget {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: isRead ? theme.colorScheme.onSurfaceVariant : theme.colorScheme.onSurface,
+                        color: isRead
+                            ? theme.colorScheme.onSurfaceVariant
+                            : theme.colorScheme.onSurface,
                       ),
                     ),
                   ],

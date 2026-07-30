@@ -19,7 +19,7 @@ final nearbyProvider =
   final repository = ref.read(nearbyRepositoryProvider);
   final locationService = ref.read(locationServiceProvider);
   final socketClient = ref.read(socketClientProvider);
-  return NearbyNotifier(repository, locationService, socketClient, ref);
+  return NearbyNotifier(repository, locationService, socketClient);
 });
 
 class NearbyNotifier extends StateNotifier<NearbyState> {

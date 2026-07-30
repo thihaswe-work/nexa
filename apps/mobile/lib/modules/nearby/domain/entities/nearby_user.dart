@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
-import '../../user/domain/entities/profile.dart';
+
+import '../../../user/domain/entities/profile.dart';
 
 class NearbyUser extends Equatable {
   final String userId;
