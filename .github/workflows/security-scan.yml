@@ -66,10 +66,15 @@ jobs:
 
         with:
           node-version: "22"
+          cache: npm
 
       - name: Install dependencies
 
-        run: npm ci
+        run: |
+          npm config set fetch-retries 5
+          npm config set fetch-retry-mintimeout 20000
+          npm config set fetch-retry-maxtimeout 120000
+          npm ci --no-audit --no-fund || npm ci --no-audit --no-fund
 
       - name: Run npm audit
 
