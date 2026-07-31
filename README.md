@@ -23,15 +23,15 @@ nexa/
 
 ## Tech Stack
 
-| Layer        | Technology                                      |
-| ------------ | ----------------------------------------------- |
-| Mobile       | Flutter + Dart                                  |
-| Backend      | NestJS + TypeScript + PostgreSQL (PostGIS)      |
-| Admin        | Next.js 14 + TypeScript + Tailwind CSS          |
-| Cache        | Redis                                           |
-| Monorepo     | npm workspaces + TurboRepo                      |
-| Containers   | Docker + Docker Compose                         |
-| CI/CD        | GitHub Actions                                  |
+| Layer      | Technology                                 |
+| ---------- | ------------------------------------------ |
+| Mobile     | Flutter + Dart                             |
+| Backend    | NestJS + TypeScript + PostgreSQL (PostGIS) |
+| Admin      | Next.js 14 + TypeScript + Tailwind CSS     |
+| Cache      | Redis                                      |
+| Monorepo   | npm workspaces + TurboRepo                 |
+| Containers | Docker + Docker Compose                    |
+| CI/CD      | GitHub Actions                             |
 
 ## Prerequisites
 
@@ -66,9 +66,9 @@ npm install
 npm run docker:dev       # starts only PostgreSQL + Redis containers
 
 # 2. Copy environment files
-copy .env.example .env
-copy apps/api/.env.example apps/api/.env
-copy apps/admin/.env.example apps/admin/.env
+cp .env.example .env
+cp apps/api/.env.example apps/api/.env
+cp apps/admin/.env.example apps/admin/.env
 
 # 3. Run database migrations
 cd apps/api
@@ -99,6 +99,7 @@ flutter run
 
 > **Note**: The mobile app expects the API at `http://localhost:4000/api/v1` by default.
 > To change this, set the `API_BASE_URL` compile-time variable:
+>
 > ```bash
 > flutter run --dart-define=API_BASE_URL=https://your-api.com/api/v1
 > ```
@@ -172,18 +173,18 @@ src/
 
 ## Available Scripts
 
-| Command              | Description                                  |
-| -------------------- | -------------------------------------------- |
-| `npm run dev`        | Start all apps in development mode (native)  |
-| `npm run build`      | Build all apps for production                |
-| `npm run lint`       | Lint all packages                            |
-| `npm run test`       | Run all tests                                |
-| `npm run api:dev`    | Start API only (native)                      |
-| `npm run admin:dev`  | Start admin only (native)                    |
-| `npm run docker:dev` | Start full dev stack (API + Admin + infra)   |
-| `npm run docker:prod`| Start production stack                       |
-| `cd apps/mobile && flutter run` | Run mobile app                    |
-| `cd apps/mobile && flutter build apk` | Build mobile APK              |
+| Command                               | Description                                 |
+| ------------------------------------- | ------------------------------------------- |
+| `npm run dev`                         | Start all apps in development mode (native) |
+| `npm run build`                       | Build all apps for production               |
+| `npm run lint`                        | Lint all packages                           |
+| `npm run test`                        | Run all tests                               |
+| `npm run api:dev`                     | Start API only (native)                     |
+| `npm run admin:dev`                   | Start admin only (native)                   |
+| `npm run docker:dev`                  | Start full dev stack (API + Admin + infra)  |
+| `npm run docker:prod`                 | Start production stack                      |
+| `cd apps/mobile && flutter run`       | Run mobile app                              |
+| `cd apps/mobile && flutter build apk` | Build mobile APK                            |
 
 ## Environment Variables
 
@@ -218,15 +219,15 @@ Dependencies point **inward**: Presentation → Application → Domain.
 
 ### Naming
 
-| Type | Convention | Example |
-|------|-----------|---------|
-| Files | kebab-case | `user.service.ts` |
-| Classes | PascalCase | `UserService` |
-| Functions/Methods | camelCase | `getUserById()` |
-| Variables | camelCase | `userName` |
-| Constants | UPPER_SNAKE | `MAX_FILE_SIZE` |
-| Types/Interfaces | PascalCase with I prefix | `IUser` |
-| DTOs | PascalCase | `CreateUserDto` |
+| Type              | Convention               | Example           |
+| ----------------- | ------------------------ | ----------------- |
+| Files             | kebab-case               | `user.service.ts` |
+| Classes           | PascalCase               | `UserService`     |
+| Functions/Methods | camelCase                | `getUserById()`   |
+| Variables         | camelCase                | `userName`        |
+| Constants         | UPPER_SNAKE              | `MAX_FILE_SIZE`   |
+| Types/Interfaces  | PascalCase with I prefix | `IUser`           |
+| DTOs              | PascalCase               | `CreateUserDto`   |
 
 ### Git Workflow
 
@@ -272,11 +273,11 @@ dart run build_runner build  # Regenerate .g.dart files
 
 ## Environment Variables
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `DATABASE_URL` | PostgreSQL connection string | `postgresql://nexa:nexa@localhost:5432/nexa_dev` |
-| `JWT_SECRET` | JWT signing secret | (must set) |
-| `NEXTAUTH_SECRET` | NextAuth encryption key | (must set for admin) |
+| Variable          | Description                  | Default                                          |
+| ----------------- | ---------------------------- | ------------------------------------------------ |
+| `DATABASE_URL`    | PostgreSQL connection string | `postgresql://nexa:nexa@localhost:5432/nexa_dev` |
+| `JWT_SECRET`      | JWT signing secret           | (must set)                                       |
+| `NEXTAUTH_SECRET` | NextAuth encryption key      | (must set for admin)                             |
 
 ### Mobile App (Dart-define)
 
@@ -286,10 +287,10 @@ The mobile app uses compile-time constants passed via `--dart-define`:
 flutter run --dart-define=API_BASE_URL=https://api.nexa.app/api/v1
 ```
 
-| Variable | Description | Default |
-|----------|-------------|---------|
+| Variable       | Description          | Default                        |
+| -------------- | -------------------- | ------------------------------ |
 | `API_BASE_URL` | Backend API base URL | `http://localhost:4000/api/v1` |
-| `WS_URL` | WebSocket server URL | `http://localhost:4000` |
+| `WS_URL`       | WebSocket server URL | `http://localhost:4000`        |
 
 ### Adding New Variables
 
@@ -303,6 +304,7 @@ flutter run --dart-define=API_BASE_URL=https://api.nexa.app/api/v1
 ### Port Conflicts
 
 Default ports:
+
 - API: 4000
 - Admin: 3000
 - PostgreSQL: 5432

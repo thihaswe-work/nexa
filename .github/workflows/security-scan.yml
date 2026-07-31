@@ -10,38 +10,31 @@ on:
     paths:
       - "**/package.json"
       - "**/package-lock.json"
+      - ".github/workflows/security.yml"
 
   pull_request:
     branches:
       - main
 
-
 permissions:
   contents: read
   security-events: write
 
-
 jobs:
-
   trivy:
-
     name: Trivy Vulnerability Scan
 
     runs-on: ubuntu-latest
 
-
     steps:
-
       - name: Checkout
         uses: actions/checkout@v4
-
 
       - name: Run Trivy filesystem scan
 
         uses: aquasecurity/trivy-action@master
 
         with:
-
           scan-type: fs
 
           scan-ref: .
@@ -52,8 +45,6 @@ jobs:
 
           severity: HIGH,CRITICAL
 
-
-
       - name: Upload Trivy results
 
         uses: github/codeql-action/upload-sarif@v4
@@ -61,37 +52,24 @@ jobs:
         if: always()
 
         with:
-
           sarif_file: trivy-results.sarif
 
-
-
   npm-audit:
-
     name: npm Audit
 
     runs-on: ubuntu-latest
 
-
     steps:
-
       - uses: actions/checkout@v4
-
-
 
       - uses: actions/setup-node@v4
 
         with:
-
           node-version: "22"
-
-
 
       - name: Install dependencies
 
         run: npm ci
-
-
 
       - name: Run npm audit
 
