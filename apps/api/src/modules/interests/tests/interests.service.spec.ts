@@ -42,7 +42,7 @@ describe('InterestsService', () => {
       expect(result).toEqual(mockInterests);
       expect(db.interest.findMany).toHaveBeenCalledWith({
         where: { deletedAt: null },
-        orderBy: { category: 'asc' },
+        orderBy: [{ category: 'asc' }, { name: 'asc' }],
       });
     });
 
@@ -61,24 +61,30 @@ describe('InterestsService', () => {
 
       const result = await service.getByCategories();
 
-      expect(result).toEqual({
-        'Arts & Culture': [
-          { id: '1', name: 'Photography', category: 'Arts & Culture' },
-          { id: '2', name: 'Painting', category: 'Arts & Culture' },
-        ],
-        'Sports & Fitness': [
-          { id: '3', name: 'Running', category: 'Sports & Fitness' },
-          { id: '4', name: 'Yoga', category: 'Sports & Fitness' },
-        ],
-      });
+      expect(result).toEqual([
+        {
+          category: 'Arts & Culture',
+          interests: [
+            { id: '1', name: 'Photography', category: 'Arts & Culture' },
+            { id: '2', name: 'Painting', category: 'Arts & Culture' },
+          ],
+        },
+        {
+          category: 'Sports & Fitness',
+          interests: [
+            { id: '3', name: 'Running', category: 'Sports & Fitness' },
+            { id: '4', name: 'Yoga', category: 'Sports & Fitness' },
+          ],
+        },
+      ]);
     });
 
-    it('should return empty object when no interests', async () => {
+    it('should return empty array when no interests', async () => {
       mockDb.interest.findMany.mockResolvedValue([]);
 
       const result = await service.getByCategories();
 
-      expect(result).toEqual({});
+      expect(result).toEqual([]);
     });
 
     it('should handle interests with unique categories', async () => {
@@ -88,9 +94,12 @@ describe('InterestsService', () => {
 
       const result = await service.getByCategories();
 
-      expect(result).toEqual({
-        Food: [{ id: '1', name: 'Cooking', category: 'Food' }],
-      });
+      expect(result).toEqual([
+        {
+          category: 'Food',
+          interests: [{ id: '1', name: 'Cooking', category: 'Food' }],
+        },
+      ]);
     });
   });
 });

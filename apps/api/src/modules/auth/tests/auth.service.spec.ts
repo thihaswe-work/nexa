@@ -139,7 +139,7 @@ describe('AuthService', () => {
   });
 
   afterEach(() => {
-    jest.resetAllMocks();
+    jest.clearAllMocks();
   });
 
   describe('register', () => {

@@ -85,38 +85,38 @@ describe('StorageService', () => {
   });
 
   describe('file validation', () => {
-    it('should reject missing file', async () => {
-      await expect(
+    it('should reject missing file', () => {
+      expect(() =>
         (service as any).validateFile(null, FileCategory.AVATAR),
-      ).rejects.toThrow(BadRequestException);
+      ).toThrow(BadRequestException);
     });
 
-    it('should reject invalid image mime type', async () => {
+    it('should reject invalid image mime type', () => {
       const file = { mimetype: 'application/pdf', size: 1000 } as Express.Multer.File;
-      await expect(
+      expect(() =>
         (service as any).validateFile(file, FileCategory.AVATAR),
-      ).rejects.toThrow(BadRequestException);
+      ).toThrow(BadRequestException);
     });
 
-    it('should reject oversized images', async () => {
+    it('should reject oversized images', () => {
       const file = { mimetype: 'image/jpeg', size: 20 * 1024 * 1024 } as Express.Multer.File;
-      await expect(
+      expect(() =>
         (service as any).validateFile(file, FileCategory.AVATAR),
-      ).rejects.toThrow(BadRequestException);
+      ).toThrow(BadRequestException);
     });
 
-    it('should accept valid images', async () => {
+    it('should accept valid images', () => {
       const file = { mimetype: 'image/jpeg', size: 1000 } as Express.Multer.File;
-      await expect(
+      expect(() =>
         (service as any).validateFile(file, FileCategory.AVATAR),
-      ).resolves.toBeUndefined();
+      ).not.toThrow();
     });
 
-    it('should reject invalid video mime types', async () => {
+    it('should reject invalid video mime types', () => {
       const file = { mimetype: 'image/jpeg', size: 1000 } as Express.Multer.File;
-      await expect(
+      expect(() =>
         (service as any).validateFile(file, FileCategory.CHAT_VIDEO),
-      ).rejects.toThrow(BadRequestException);
+      ).toThrow(BadRequestException);
     });
   });
 

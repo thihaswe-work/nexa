@@ -75,16 +75,16 @@ describe('UsersService', () => {
     },
     privacySettings: {
       findUnique: jest.fn(),
+      create: jest.fn(),
       upsert: jest.fn(),
     },
     $transaction: jest.fn(),
   };
 
   const mockStorage = {
-    uploadAvatar: jest.fn(),
-    deleteAvatar: jest.fn(),
-    uploadCover: jest.fn(),
-    deleteCover: jest.fn(),
+    upload: jest.fn(),
+    delete: jest.fn(),
+    extractKeyFromUrl: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -181,12 +181,20 @@ describe('UsersService', () => {
 
     it('should upload avatar and update profile', async () => {
       mockDb.profile.findUnique.mockResolvedValue(mockUser.profile);
-      mockStorage.uploadAvatar.mockResolvedValue('http://localhost:4000/uploads/avatars/new-avatar.jpg');
+      mockStorage.upload.mockResolvedValue({
+        url: 'http://localhost:4000/uploads/avatars/new-avatar.jpg',
+      });
       mockDb.profile.update.mockResolvedValue(mockUser.profile);
 
       const result = await service.uploadAvatar(mockUserId, mockFile);
 
       expect(result.avatarUrl).toContain('new-avatar.jpg');
+      expect(mockStorage.upload).toHaveBeenCalledWith(
+        mockFile,
+        expect.anything(),
+        mockUserId,
+        { maxWidth: 512, maxHeight: 512 },
+      );
       expect(mockDb.profile.update).toHaveBeenCalledWith({
         where: { userId: mockUserId },
         data: { avatarUrl: expect.any(String) },
@@ -199,14 +207,19 @@ describe('UsersService', () => {
         avatarUrl: 'http://localhost:4000/uploads/avatars/old-avatar.jpg',
       };
       mockDb.profile.findUnique.mockResolvedValue(profileWithAvatar);
-      mockStorage.uploadAvatar.mockResolvedValue('http://localhost:4000/uploads/avatars/new-avatar.jpg');
+      mockStorage.extractKeyFromUrl.mockResolvedValue('avatars/old-avatar.jpg');
+      mockStorage.delete.mockResolvedValue(undefined);
+      mockStorage.upload.mockResolvedValue({
+        url: 'http://localhost:4000/uploads/avatars/new-avatar.jpg',
+      });
       mockDb.profile.update.mockResolvedValue(profileWithAvatar);
 
       await service.uploadAvatar(mockUserId, mockFile);
 
-      expect(mockStorage.deleteAvatar).toHaveBeenCalledWith(
+      expect(mockStorage.extractKeyFromUrl).toHaveBeenCalledWith(
         'http://localhost:4000/uploads/avatars/old-avatar.jpg',
       );
+      expect(mockStorage.delete).toHaveBeenCalledWith('avatars/old-avatar.jpg');
     });
 
     it('should throw NotFoundException if profile missing', async () => {
@@ -225,13 +238,13 @@ describe('UsersService', () => {
         avatarUrl: 'http://localhost:4000/uploads/avatars/old-avatar.jpg',
       };
       mockDb.profile.findUnique.mockResolvedValue(profileWithAvatar);
+      mockStorage.extractKeyFromUrl.mockResolvedValue('avatars/old-avatar.jpg');
+      mockStorage.delete.mockResolvedValue(undefined);
       mockDb.profile.update.mockResolvedValue(profileWithAvatar);
 
       await service.deleteAvatar(mockUserId);
 
-      expect(mockStorage.deleteAvatar).toHaveBeenCalledWith(
-        'http://localhost:4000/uploads/avatars/old-avatar.jpg',
-      );
+      expect(mockStorage.delete).toHaveBeenCalledWith('avatars/old-avatar.jpg');
       expect(mockDb.profile.update).toHaveBeenCalledWith({
         where: { userId: mockUserId },
         data: { avatarUrl: null },
@@ -244,7 +257,7 @@ describe('UsersService', () => {
 
       await service.deleteAvatar(mockUserId);
 
-      expect(mockStorage.deleteAvatar).not.toHaveBeenCalled();
+      expect(mockStorage.delete).not.toHaveBeenCalled();
     });
   });
 
@@ -296,14 +309,12 @@ describe('UsersService', () => {
 
     it('should create default settings if none exist', async () => {
       mockDb.privacySettings.findUnique.mockResolvedValue(null);
-      mockDb.privacySettings.upsert.mockResolvedValue(mockUser.privacySettings);
+      mockDb.privacySettings.create.mockResolvedValue(mockUser.privacySettings);
 
       const result = await service.getPrivacySettings(mockUserId);
 
-      expect(mockDb.privacySettings.upsert).toHaveBeenCalledWith({
-        where: { userId: mockUserId },
-        create: { userId: mockUserId },
-        update: {},
+      expect(mockDb.privacySettings.create).toHaveBeenCalledWith({
+        data: { userId: mockUserId },
       });
       expect(result).toBeDefined();
     });
@@ -312,6 +323,7 @@ describe('UsersService', () => {
       mockDb.privacySettings.findUnique
         .mockResolvedValueOnce(null)
         .mockResolvedValueOnce({ ...mockUser.privacySettings, showOnline: false });
+      mockDb.privacySettings.create.mockResolvedValue(mockUser.privacySettings);
       mockDb.privacySettings.upsert.mockResolvedValue(mockUser.privacySettings);
 
       const dto: UpdatePrivacyDto = { showOnline: false };
