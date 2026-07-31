@@ -1,48 +1,39 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, ValidationPipe } from '@nestjs/common';
-import * as request from 'supertest';
-import { AppModule } from '../src/app.module';
+import { INestApplication } from '@nestjs/common';
+import request from 'supertest';
+import { createTestApp } from './test-bootstrap';
 
 describe('Chat (e2e)', () => {
   let app: INestApplication;
   let httpServer: any;
   let senderToken: string;
   let senderId: string;
-  let receiverToken: string;
   let receiverId: string;
 
   beforeAll(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
-    }).compile();
-
-    app = moduleFixture.createNestApplication();
-    app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true }));
-    await app.init();
+    app = await createTestApp();
     httpServer = app.getHttpServer();
 
     const senderRes = await request(httpServer)
       .post('/api/v1/auth/register')
       .send({
-        username: 'e2e-chat-sender',
+        username: 'e2e_chat_sender',
         email: 'e2e-chat-sender@example.com',
         password: 'SecureP@ss123',
         displayName: 'Chat Sender',
       });
 
-    senderToken = senderRes.body.accessToken;
+    senderToken = senderRes.body.tokens.accessToken;
     senderId = senderRes.body.user.id;
 
     const receiverRes = await request(httpServer)
       .post('/api/v1/auth/register')
       .send({
-        username: 'e2e-chat-receiver',
+        username: 'e2e_chat_receiver',
         email: 'e2e-chat-receiver@example.com',
         password: 'SecureP@ss123',
         displayName: 'Chat Receiver',
       });
 
-    receiverToken = receiverRes.body.accessToken;
     receiverId = receiverRes.body.user.id;
   });
 
@@ -55,19 +46,19 @@ describe('Chat (e2e)', () => {
 
     it('should create or get a direct conversation', async () => {
       const res = await request(httpServer)
-        .post('/api/v1/chat/conversations')
+        .post('/api/v1/chat/conversations/private')
         .set('Authorization', `Bearer ${senderToken}`)
-        .send({ participantIds: [receiverId] })
-        .expect(201);
+        .send({ participantId: receiverId })
+        .expect(200);
 
       expect(res.body.id).toBeDefined();
-      expect(res.body.type).toBe('direct');
+      expect(res.body.isGroup).toBe(false);
       conversationId = res.body.id;
 
       const res2 = await request(httpServer)
-        .post('/api/v1/chat/conversations')
+        .post('/api/v1/chat/conversations/private')
         .set('Authorization', `Bearer ${senderToken}`)
-        .send({ participantIds: [receiverId] })
+        .send({ participantId: receiverId })
         .expect(200);
 
       expect(res2.body.id).toBe(conversationId);
@@ -79,14 +70,14 @@ describe('Chat (e2e)', () => {
         .set('Authorization', `Bearer ${senderToken}`)
         .expect(200);
 
-      expect(Array.isArray(res.body.data)).toBe(true);
-      expect(res.body.data.length).toBeGreaterThanOrEqual(1);
+      expect(Array.isArray(res.body.conversations)).toBe(true);
+      expect(res.body.conversations.length).toBeGreaterThanOrEqual(1);
     });
 
     it('should require auth to create conversation', async () => {
       await request(httpServer)
-        .post('/api/v1/chat/conversations')
-        .send({ participantIds: [receiverId] })
+        .post('/api/v1/chat/conversations/private')
+        .send({ participantId: receiverId })
         .expect(401);
     });
   });
@@ -97,9 +88,9 @@ describe('Chat (e2e)', () => {
 
     beforeAll(async () => {
       const res = await request(httpServer)
-        .post('/api/v1/chat/conversations')
+        .post('/api/v1/chat/conversations/private')
         .set('Authorization', `Bearer ${senderToken}`)
-        .send({ participantIds: [receiverId] });
+        .send({ participantId: receiverId });
       conversationId = res.body.id;
     });
 
@@ -122,8 +113,8 @@ describe('Chat (e2e)', () => {
         .set('Authorization', `Bearer ${senderToken}`)
         .expect(200);
 
-      expect(Array.isArray(res.body.data)).toBe(true);
-      expect(res.body.data.length).toBeGreaterThanOrEqual(1);
+      expect(Array.isArray(res.body.messages)).toBe(true);
+      expect(res.body.messages.length).toBeGreaterThanOrEqual(1);
     });
 
     it('should reject empty message content', async () => {
@@ -136,7 +127,7 @@ describe('Chat (e2e)', () => {
 
     it('should edit a message', async () => {
       const res = await request(httpServer)
-        .patch(`/api/v1/chat/conversations/${conversationId}/messages/${messageId}`)
+        .patch(`/api/v1/chat/messages/${messageId}`)
         .set('Authorization', `Bearer ${senderToken}`)
         .send({ content: 'Edited message' })
         .expect(200);
@@ -152,7 +143,7 @@ describe('Chat (e2e)', () => {
         .send({ content: 'To be deleted' });
 
       await request(httpServer)
-        .delete(`/api/v1/chat/conversations/${conversationId}/messages/${newMsg.body.id}`)
+        .delete(`/api/v1/chat/messages/${newMsg.body.id}`)
         .set('Authorization', `Bearer ${senderToken}`)
         .expect(204);
     });

@@ -1,7 +1,6 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, ValidationPipe } from '@nestjs/common';
-import * as request from 'supertest';
-import { AppModule } from '../src/app.module';
+import { INestApplication } from '@nestjs/common';
+import request from 'supertest';
+import { createTestApp } from './test-bootstrap';
 
 describe('Users (e2e)', () => {
   let app: INestApplication;
@@ -10,25 +9,19 @@ describe('Users (e2e)', () => {
   let userId: string;
 
   beforeAll(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
-    }).compile();
-
-    app = moduleFixture.createNestApplication();
-    app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true }));
-    await app.init();
+    app = await createTestApp();
     httpServer = app.getHttpServer();
 
     const registerRes = await request(httpServer)
       .post('/api/v1/auth/register')
       .send({
-        username: 'e2e-profile-test',
+        username: 'e2e_profile_test',
         email: 'e2e-profile@example.com',
         password: 'SecureP@ss123',
         displayName: 'Profile Test',
       });
 
-    accessToken = registerRes.body.accessToken;
+    accessToken = registerRes.body.tokens.accessToken;
     userId = registerRes.body.user.id;
   });
 
@@ -44,7 +37,7 @@ describe('Users (e2e)', () => {
         .expect(200);
 
       expect(res.body.id).toBe(userId);
-      expect(res.body.username).toBe('e2e-profile-test');
+      expect(res.body.username).toBe('e2e_profile_test');
       expect(res.body.profile.displayName).toBe('Profile Test');
     });
 

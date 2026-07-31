@@ -126,6 +126,17 @@ jobs:
 
           npx prisma migrate reset --force
 
+      - name: Seed database
+
+        working-directory: apps/api
+
+        env:
+          DATABASE_URL: postgresql://nexa:nexa@localhost:5432/nexa_test
+
+        run: |
+
+          npm run prisma:seed
+
       - name: Run tests
 
         working-directory: apps/api
@@ -135,7 +146,7 @@ jobs:
 
           REDIS_URL: redis://localhost:6379
 
-          JWT_SECRET: test-secret
+          JWT_SECRET: test-secret-key-that-is-at-least-32-characters-long
 
         run: |
 

@@ -1,18 +1,12 @@
-import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
-import * as request from 'supertest';
-import { AppModule } from '../src/app.module';
+import request from 'supertest';
+import { createTestApp } from './test-bootstrap';
 
 describe('App (e2e)', () => {
   let app: INestApplication;
 
   beforeAll(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
-    }).compile();
-
-    app = moduleFixture.createNestApplication();
-    await app.init();
+    app = await createTestApp();
   });
 
   afterAll(async () => {
@@ -20,9 +14,9 @@ describe('App (e2e)', () => {
   });
 
   describe('Health Check', () => {
-    it('GET /health should return 200', () => {
+    it('GET /v1/health should return 200', () => {
       return request(app.getHttpServer())
-        .get('/health')
+        .get('/v1/health')
         .expect(200)
         .expect((res) => {
           expect(res.body.status).toBeDefined();
@@ -30,18 +24,18 @@ describe('App (e2e)', () => {
         });
     });
 
-    it('GET /health/live should return alive', () => {
+    it('GET /v1/health/live should return alive', () => {
       return request(app.getHttpServer())
-        .get('/health/live')
+        .get('/v1/health/live')
         .expect(200)
         .expect((res) => {
           expect(res.body.status).toBe('alive');
         });
     });
 
-    it('GET /health/ready should return ready or not_ready', () => {
+    it('GET /v1/health/ready should return ready or not_ready', () => {
       return request(app.getHttpServer())
-        .get('/health/ready')
+        .get('/v1/health/ready')
         .expect(200)
         .expect((res) => {
           expect(['ready', 'not_ready']).toContain(res.body.status);
@@ -52,7 +46,8 @@ describe('App (e2e)', () => {
   describe('Global Configuration', () => {
     it('should have CORS headers', () => {
       return request(app.getHttpServer())
-        .options('/health')
+        .options('/v1/health')
+        .set('Origin', 'http://localhost:3000')
         .expect(204)
         .expect('Access-Control-Allow-Origin', '*');
     });

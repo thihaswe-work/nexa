@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { randomBytes, createHash } from 'crypto';
@@ -87,25 +87,25 @@ export class TokensService {
     });
 
     if (!existingToken) {
-      throw new Error('Invalid refresh token');
+      throw new UnauthorizedException('Invalid refresh token');
     }
 
     const reused = await this.sessionService.isTokenReused(existingToken.userId, tokenHash);
     if (reused) {
       await this.revokeAllUserTokens(existingToken.userId);
       await this.sessionService.revokeAllUserSessions(existingToken.userId);
-      throw new Error('Refresh token has been reused — possible token theft');
+      throw new UnauthorizedException('Refresh token has been reused — possible token theft');
     }
 
     if (existingToken.revokedAt) {
       await this.sessionService.trackTokenFamily(existingToken.userId, tokenHash, '');
       await this.revokeAllUserTokens(existingToken.userId);
       await this.sessionService.revokeAllUserSessions(existingToken.userId);
-      throw new Error('Refresh token has been revoked — possible token theft');
+      throw new UnauthorizedException('Refresh token has been revoked — possible token theft');
     }
 
     if (existingToken.expiresAt < new Date()) {
-      throw new Error('Refresh token has expired');
+      throw new UnauthorizedException('Refresh token has expired');
     }
 
     await this.db.refreshToken.update({

@@ -1,4 +1,4 @@
-import { IsOptional, IsString, IsEnum, IsUUID, MaxLength, IsArray, ValidateNested } from 'class-validator';
+import { IsOptional, IsString, IsNotEmpty, IsEnum, IsUUID, MaxLength, IsArray, ValidateNested } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { MessageType, AttachmentType } from '@prisma/client';
 import { Type } from 'class-transformer';
@@ -41,6 +41,7 @@ export class AttachmentUploadDto {
 
 export class SendMessageDto {
   @IsString()
+  @IsNotEmpty()
   @MaxLength(5000)
   content!: string;
 
@@ -62,6 +63,7 @@ export class SendMessageDto {
 
 export class EditMessageDto {
   @IsString()
+  @IsNotEmpty()
   @MaxLength(5000)
   content!: string;
 }

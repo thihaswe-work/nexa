@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { RedisService } from './redis.service';
 
 export interface RateLimitResult {
@@ -30,12 +30,14 @@ const RATE_LIMIT_LUA = `
 `;
 
 @Injectable()
-export class RateLimitService {
+export class RateLimitService implements OnModuleInit {
   private readonly logger = new Logger(RateLimitService.name);
   private scriptSha: string | null = null;
 
-  constructor(private readonly redis: RedisService) {
-    this.loadScript();
+  constructor(private readonly redis: RedisService) {}
+
+  async onModuleInit(): Promise<void> {
+    await this.loadScript();
   }
 
   private async loadScript(): Promise<void> {

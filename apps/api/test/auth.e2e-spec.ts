@@ -1,20 +1,13 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, ValidationPipe } from '@nestjs/common';
-import * as request from 'supertest';
-import { AppModule } from '../src/app.module';
+import { INestApplication } from '@nestjs/common';
+import request from 'supertest';
+import { createTestApp } from './test-bootstrap';
 
 describe('Auth (e2e)', () => {
   let app: INestApplication;
   let httpServer: any;
 
   beforeAll(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
-    }).compile();
-
-    app = moduleFixture.createNestApplication();
-    app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true }));
-    await app.init();
+    app = await createTestApp();
     httpServer = app.getHttpServer();
   });
 
@@ -24,7 +17,7 @@ describe('Auth (e2e)', () => {
 
   describe('POST /api/v1/auth/register', () => {
     const validUser = {
-      username: 'e2e-test-user',
+      username: 'e2e_test_user',
       email: 'e2e@example.com',
       password: 'SecureP@ss123',
       displayName: 'E2E Test',
@@ -38,8 +31,8 @@ describe('Auth (e2e)', () => {
 
       expect(res.body.user).toBeDefined();
       expect(res.body.user.email).toBe(validUser.email);
-      expect(res.body.accessToken).toBeDefined();
-      expect(res.body.refreshToken).toBeDefined();
+      expect(res.body.tokens.accessToken).toBeDefined();
+      expect(res.body.tokens.refreshToken).toBeDefined();
     });
 
     it('should reject duplicate email', async () => {
@@ -71,8 +64,8 @@ describe('Auth (e2e)', () => {
         .send({ email: 'e2e@example.com', password: 'SecureP@ss123' })
         .expect(200);
 
-      expect(res.body.accessToken).toBeDefined();
-      expect(res.body.refreshToken).toBeDefined();
+      expect(res.body.tokens.accessToken).toBeDefined();
+      expect(res.body.tokens.refreshToken).toBeDefined();
       expect(res.body.user.email).toBe('e2e@example.com');
     });
 
@@ -105,7 +98,7 @@ describe('Auth (e2e)', () => {
       const res = await request(httpServer)
         .post('/api/v1/auth/login')
         .send({ email: 'e2e@example.com', password: 'SecureP@ss123' });
-      refreshToken = res.body.refreshToken;
+      refreshToken = res.body.tokens.refreshToken;
     });
 
     it('should refresh tokens with valid refresh token', async () => {
@@ -133,7 +126,7 @@ describe('Auth (e2e)', () => {
       const res = await request(httpServer)
         .post('/api/v1/auth/login')
         .send({ email: 'e2e@example.com', password: 'SecureP@ss123' });
-      accessToken = res.body.accessToken;
+      accessToken = res.body.tokens.accessToken;
     });
 
     it('should access /api/v1/auth/me with valid token', async () => {

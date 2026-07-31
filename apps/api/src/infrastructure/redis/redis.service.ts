@@ -35,8 +35,12 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     this.subscriber.on('error', (error) => this.logger.error(`Redis subscriber error: ${error.message}`));
 
     try {
-      await this.client.connect();
-      await this.subscriber.connect();
+      if (this.client.status === 'wait') {
+        await this.client.connect();
+      }
+      if (this.subscriber.status === 'wait') {
+        await this.subscriber.connect();
+      }
       await this.client.ping();
       this.logger.log('Redis ready');
     } catch (error) {
@@ -45,10 +49,14 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   }
 
   async onModuleDestroy(): Promise<void> {
-    await Promise.all([
-      this.client.quit(),
-      this.subscriber.quit(),
-    ]);
+    try {
+      await Promise.all([
+        this.client.quit(),
+        this.subscriber.quit(),
+      ]);
+    } catch (error) {
+      this.logger.warn(`Redis disconnect failed: ${(error as Error).message}`);
+    }
     this.logger.log('Redis disconnected');
   }
 
