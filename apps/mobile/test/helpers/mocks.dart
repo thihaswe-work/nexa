@@ -1,13 +1,9 @@
-import 'dart:convert';
 import 'package:mocktail/mocktail.dart';
-import 'package:fpdart/fpdart.dart';
-import 'package:nexa_mobile/core/errors/failures.dart';
 import 'package:nexa_mobile/core/storage/secure_storage.dart';
 import 'package:nexa_mobile/modules/auth/domain/entities/auth_tokens.dart';
 import 'package:nexa_mobile/modules/auth/domain/entities/user.dart';
 import 'package:nexa_mobile/modules/auth/domain/repositories/auth_repository.dart';
 import 'package:nexa_mobile/modules/user/domain/entities/profile.dart';
-import 'package:nexa_mobile/modules/user/domain/entities/interest.dart';
 import 'package:nexa_mobile/modules/user/domain/repositories/user_repository.dart';
 import 'package:nexa_mobile/modules/chat/domain/entities/conversation.dart';
 import 'package:nexa_mobile/modules/chat/domain/entities/message.dart';
@@ -53,17 +49,13 @@ final tAuthTokens = AuthTokens(
 );
 
 final tProfile = Profile(
-  id: 'profile-1',
   userId: 'user-1',
   displayName: 'Test User',
   bio: 'Hello world',
   avatarUrl: null,
   coverUrl: null,
-  city: 'New York',
-  country: 'US',
-  interests: [
-    Interest(id: 'int-1', name: 'Photography', category: 'Arts'),
-  ],
+  interests: const ['photography', 'music'],
+  createdAt: DateTime(2024, 1, 1),
 );
 
 final tConversation = Conversation(
@@ -87,11 +79,9 @@ final tMessage = Message(
 
 final tNearbyUser = NearbyUser(
   userId: 'user-2',
-  displayName: 'Nearby User',
-  avatarUrl: null,
+  profile: tProfile,
   distance: 150.0,
   lastSeen: DateTime.now(),
-  isOnline: true,
 );
 
 final tLocation = Location(
@@ -99,20 +89,23 @@ final tLocation = Location(
   lng: -74.0060,
 );
 
-final tAppNotification = AppNotification(
+final tAppNotification = Notification(
   id: 'notif-1',
   type: 'MESSAGE',
   title: 'New Message',
   body: 'You got a message',
   isRead: false,
-  createdAt: DateTime(2024, 1, 15, 10, 0),
+  createdAt: '2024-01-15T10:00:00Z',
 );
 
 final tAppSettings = AppSettings(
-  isDarkMode: false,
-  showOnline: true,
-  showLocation: true,
-  notificationsEnabled: true,
+  showNearby: true,
+  showOnlineStatus: true,
+  showReadReceipts: true,
+  allowFriendRequests: true,
+  pushNotifications: true,
+  soundEnabled: true,
+  vibrationEnabled: true,
   nearbyRadius: 1000,
 );
 

@@ -1,56 +1,80 @@
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mocktail/mocktail.dart';
 import 'package:nexa_mobile/core/storage/secure_storage.dart';
 
-class MockFlutterSecureStorage extends Mock implements FlutterSecureStorage {}
-
 void main() {
-  late SecureStorage secureStorage;
-  late MockFlutterSecureStorage mockPlugin;
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  const channel = MethodChannel('plugins.it_nomads.com/flutter_secure_storage');
+  final store = <String, String>{};
 
   setUp(() {
-    mockPlugin = MockFlutterSecureStorage();
-    secureStorage = SecureStorage();
-    // Replace the private _storage with mock via reflection or inject
-    // For real testing, we use the real implementation since FlutterSecureStorage
-    // has platform-specific behavior. Here we test the logic.
+    store.clear();
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (call) async {
+      switch (call.method) {
+        case 'read':
+          return store[call.arguments['key'] as String];
+        case 'write':
+          store[call.arguments['key'] as String] =
+              call.arguments['value'] as String;
+          return null;
+        case 'delete':
+          store.remove(call.arguments['key'] as String);
+          return null;
+      }
+      return null;
+    });
+  });
+
+  tearDown(() {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, null);
   });
 
   group('SecureStorage', () {
     test('saveTokens stores both tokens', () async {
-      // This would need dependency injection to mock properly.
-      // In a real implementation, SecureStorage would accept the plugin.
-      // Here we verify the class compiles and has correct API.
-      expect(secureStorage.saveTokens, isA<Function>());
-      expect(secureStorage.getAccessToken, isA<Function>());
-      expect(secureStorage.getRefreshToken, isA<Function>());
-      expect(secureStorage.clearTokens, isA<Function>());
+      final storage = SecureStorage();
+      await storage.saveTokens('access-token', 'refresh-token');
+
+      expect(await storage.getAccessToken(), 'access-token');
+      expect(await storage.getRefreshToken(), 'refresh-token');
     });
 
     test('saveTokens returns void', () async {
-      final result = secureStorage.saveTokens('access', 'refresh');
+      final result = SecureStorage().saveTokens('access', 'refresh');
       expect(result, isA<Future<void>>());
+      await result;
     });
 
-    test('getAccessToken returns string or null', () async {
-      final result = secureStorage.getAccessToken();
-      expect(result, isA<Future<String?>>());
+    test('getAccessToken returns null when empty', () async {
+      expect(await SecureStorage().getAccessToken(), isNull);
     });
 
-    test('clearTokens returns void', () async {
-      final result = secureStorage.clearTokens();
-      expect(result, isA<Future<void>>());
+    test('clearTokens clears stored tokens and user data', () async {
+      final storage = SecureStorage();
+      await storage.saveTokens('access', 'refresh');
+      await storage.saveUserId('user-1');
+      await storage.saveUserEmail('test@test.com');
+
+      await storage.clearTokens();
+
+      expect(await storage.getAccessToken(), isNull);
+      expect(await storage.getRefreshToken(), isNull);
+      expect(await storage.getUserId(), isNull);
+      expect(await storage.getUserEmail(), isNull);
     });
 
     test('saveUserId and getUserId work together', () async {
-      // Verify method contracts
-      expect(secureStorage.saveUserId('user-1'), isA<Future<void>>());
-      expect(secureStorage.getUserId(), isA<Future<String?>>());
+      final storage = SecureStorage();
+      await storage.saveUserId('user-1');
+      expect(await storage.getUserId(), 'user-1');
     });
 
     test('saveUserEmail and getUserEmail work together', () async {
-      expect(secureStorage.saveUserEmail('test@test.com'), isA<Future<void>>());
-      expect(secureStorage.getUserEmail(), isA<Future<String?>>());
+      final storage = SecureStorage();
+      await storage.saveUserEmail('test@test.com');
+      expect(await storage.getUserEmail(), 'test@test.com');
     });
   });
 }

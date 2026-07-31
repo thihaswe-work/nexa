@@ -6,7 +6,6 @@ import 'package:nexa_mobile/core/errors/failures.dart';
 import 'package:nexa_mobile/modules/chat/data/datasources/chat_socket_datasource.dart';
 import 'package:nexa_mobile/modules/chat/data/datasources/local/chat_local_datasource.dart';
 import 'package:nexa_mobile/modules/chat/domain/repositories/chat_repository.dart';
-import 'package:nexa_mobile/modules/chat/presentation/providers/chat_provider.dart';
 import 'package:nexa_mobile/modules/chat/presentation/providers/chat_state.dart';
 import '../../helpers/mocks.dart';
 
@@ -60,7 +59,10 @@ class TestChatNotifier extends StateNotifier<ChatState> {
   }
 
   Future<void> sendMessage(String conversationId, String content) async {
-    final result = await repository.sendMessage(conversationId, content);
+    final result = await repository.sendMessage(
+      conversationId,
+      content: content,
+    );
     result.fold(
       (failure) {
         state = state.copyWith(
@@ -142,7 +144,7 @@ void main() {
 
     group('sendMessage', () {
       test('should add sent message to state', () async {
-        when(() => mockRepository.sendMessage('conv-1', 'Hi!'))
+        when(() => mockRepository.sendMessage('conv-1', content: 'Hi!'))
             .thenAnswer((_) async => Right(tMessage));
 
         await notifier.sendMessage('conv-1', 'Hi!');
@@ -152,8 +154,9 @@ void main() {
       });
 
       test('should set error on send failure', () async {
-        when(() => mockRepository.sendMessage('conv-1', 'Hi!')).thenAnswer(
-            (_) async => Left(ServerFailure(message: 'Failed to send')));
+        when(() => mockRepository.sendMessage('conv-1', content: 'Hi!'))
+            .thenAnswer((_) async =>
+                Left(ServerFailure(message: 'Failed to send')));
 
         await notifier.sendMessage('conv-1', 'Hi!');
 

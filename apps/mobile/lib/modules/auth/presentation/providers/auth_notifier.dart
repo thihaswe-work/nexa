@@ -25,11 +25,13 @@ class AuthNotifier extends StateNotifier<AuthState> {
   Future<void> login(String email, String password) async {
     state = state.copyWith(status: AuthStatus.loading, errorMessage: null);
     final result = await _repository.login(email, password);
-    result.fold(
-      (failure) => state = state.copyWith(
-        status: AuthStatus.error,
-        errorMessage: failure.message,
-      ),
+    await result.fold(
+      (failure) async {
+        state = state.copyWith(
+          status: AuthStatus.error,
+          errorMessage: failure.message,
+        );
+      },
       (_) async {
         final userResult = await _repository.getCurrentUser();
         userResult.fold(
@@ -50,11 +52,13 @@ class AuthNotifier extends StateNotifier<AuthState> {
       String email, String password, String displayName) async {
     state = state.copyWith(status: AuthStatus.loading, errorMessage: null);
     final result = await _repository.register(email, password, displayName);
-    result.fold(
-      (failure) => state = state.copyWith(
-        status: AuthStatus.error,
-        errorMessage: failure.message,
-      ),
+    await result.fold(
+      (failure) async {
+        state = state.copyWith(
+          status: AuthStatus.error,
+          errorMessage: failure.message,
+        );
+      },
       (_) async {
         final userResult = await _repository.getCurrentUser();
         userResult.fold(
