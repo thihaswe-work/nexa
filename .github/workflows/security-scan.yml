@@ -10,7 +10,7 @@ on:
     paths:
       - "**/package.json"
       - "**/package-lock.json"
-      - ".github/workflows/security.yml"
+      - ".github/workflows/security-scan.yml"
 
   pull_request:
     branches:
