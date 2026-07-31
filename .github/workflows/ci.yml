@@ -18,13 +18,10 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-
 env:
   NODE_VERSION: "22"
 
-
 jobs:
-
   lint:
     name: Lint
     runs-on: ubuntu-latest
@@ -32,71 +29,54 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
 
-
       - name: Install dependencies
         run: npm ci
-
 
       - name: Check ESLint configs
         run: |
           find . -name ".eslintrc*" -o -name "eslint.config.*"
 
-
       - name: Run lint
         run: npm run lint
-
-
 
   typecheck:
     name: Type Check
     runs-on: ubuntu-latest
 
-
     steps:
       - uses: actions/checkout@v4
-
 
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
 
-
       - name: Install dependencies
         run: npm ci
-
 
       - name: Prisma generate
         working-directory: apps/api
         run: npx prisma generate
 
-
       - name: API typecheck
         working-directory: apps/api
         run: npx tsc --noEmit
-
 
       - name: Admin typecheck
         working-directory: apps/admin
         run: npx tsc --noEmit
 
-
-
   test-api:
-
     name: API Tests
 
     runs-on: ubuntu-latest
 
-
     services:
-
       postgres:
         image: postgis/postgis:16-3.4
 
@@ -105,10 +85,8 @@ jobs:
           POSTGRES_USER: nexa
           POSTGRES_PASSWORD: nexa
 
-
         ports:
           - 5432:5432
-
 
         options: >-
           --health-cmd "pg_isready -U nexa"
@@ -116,37 +94,26 @@ jobs:
           --health-timeout 5s
           --health-retries 5
 
-
-
       redis:
         image: redis:7-alpine
 
         ports:
           - 6379:6379
 
-
-
     steps:
-
       - uses: actions/checkout@v4
-
 
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
 
-
       - name: Install dependencies
         run: npm ci
-
-
 
       - name: Prisma generate
         working-directory: apps/api
         run: npx prisma generate
-
-
 
       - name: Reset database
 
@@ -159,20 +126,16 @@ jobs:
 
           npx prisma migrate reset --force
 
-
-
       - name: Run tests
 
         working-directory: apps/api
 
         env:
-
           DATABASE_URL: postgresql://nexa:nexa@localhost:5432/nexa_test
 
           REDIS_URL: redis://localhost:6379
 
           JWT_SECRET: test-secret
-
 
         run: |
 
@@ -180,32 +143,21 @@ jobs:
 
           npm run test:e2e
 
-
-
   test-admin:
-
     name: Admin Tests
 
     runs-on: ubuntu-latest
 
-
     steps:
-
       - uses: actions/checkout@v4
-
 
       - uses: actions/setup-node@v4
 
         with:
-
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
 
-
-
       - run: npm ci
-
-
 
       - name: Test Admin
 
@@ -213,29 +165,19 @@ jobs:
 
         run: npm test
 
-
-
   test-mobile:
-
     name: Flutter Tests
 
     runs-on: ubuntu-latest
 
-
     steps:
-
       - uses: actions/checkout@v4
-
-
 
       - uses: subosito/flutter-action@v2
 
         with:
-
           flutter-version: "3.44.8"
           cache: true
-
-
 
       - name: Flutter dependencies
 
@@ -243,51 +185,34 @@ jobs:
 
         run: flutter pub get
 
-
-
       - name: Flutter tests
 
         working-directory: apps/mobile
 
         run: flutter test
 
-
-
   build:
-
     name: Build
 
     runs-on: ubuntu-latest
 
-
     needs:
-
       - lint
       - typecheck
       - test-api
       - test-admin
       - test-mobile
 
-
-
     steps:
-
       - uses: actions/checkout@v4
-
-
 
       - uses: actions/setup-node@v4
 
         with:
-
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
 
-
-
       - run: npm ci
-
-
 
       - name: Prisma generate
 
@@ -295,32 +220,20 @@ jobs:
 
         run: npx prisma generate
 
-
-
       - name: Build all
 
         run: npm run build
 
-
-
       - name: Upload API
-
         uses: actions/upload-artifact@v4
-
         with:
-
           name: api-build
-
           path: apps/api/dist
-
-
+          retention-days: 1
 
       - name: Upload Admin
-
         uses: actions/upload-artifact@v4
-
         with:
-
           name: admin-build
-
           path: apps/admin/.next
+          retention-days: 1

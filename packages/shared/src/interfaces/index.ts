@@ -1,4 +1,11 @@
-import type { GeoPoint, UserRole, UserStatus, PlaceCategory, PlaceStatus, PaginationMeta, SortOrder } from '../types';
+import type {
+  GeoPoint,
+  UserRole,
+  UserStatus,
+  PlaceCategory,
+  PlaceStatus,
+  SortOrder,
+} from "../types";
 
 // ── API Contracts ──
 export interface ApiResponse<T> {
@@ -83,7 +90,7 @@ export interface IFriend {
   id: string;
   userId: string;
   friendId: string;
-  status: 'pending' | 'accepted' | 'blocked';
+  status: "pending" | "accepted" | "blocked";
   createdAt: string;
   updatedAt: string;
 }
