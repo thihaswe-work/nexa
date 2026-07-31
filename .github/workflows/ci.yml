@@ -2,202 +2,325 @@ name: CI
 
 on:
   push:
-    branches: [main, develop]
+    branches:
+      - main
+      - develop
     paths-ignore:
       - "docs/**"
       - "**.md"
       - "infra/**"
+
   pull_request:
-    branches: [main]
+    branches:
+      - main
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+
 env:
-  NODE_VERSION: "20"
-  TURBO_API: http://127.0.0.1:9080
-  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
-  TURBO_TEAM: ${{ vars.TURBO_TEAM }}
+  NODE_VERSION: "22"
+
 
 jobs:
+
   lint:
     name: Lint
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
+
 
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: "npm"
+          cache: npm
+
 
       - name: Install dependencies
         run: npm ci
+
+
+      - name: Check ESLint configs
+        run: |
+          find . -name ".eslintrc*" -o -name "eslint.config.*"
+
 
       - name: Run lint
         run: npm run lint
 
+
+
   typecheck:
     name: Type Check
     runs-on: ubuntu-latest
+
+
     steps:
       - uses: actions/checkout@v4
+
 
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: "npm"
+          cache: npm
+
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Generate Prisma client
+
+      - name: Prisma generate
+        working-directory: apps/api
         run: npx prisma generate
-        working-directory: apps/api
 
-      - name: Type check API
-        run: npx tsc --noEmit
-        working-directory: apps/api
 
-      - name: Type check Admin
+      - name: API typecheck
+        working-directory: apps/api
         run: npx tsc --noEmit
+
+
+      - name: Admin typecheck
         working-directory: apps/admin
+        run: npx tsc --noEmit
+
+
 
   test-api:
-    name: Test API
+
+    name: API Tests
+
     runs-on: ubuntu-latest
+
+
     services:
+
       postgres:
         image: postgis/postgis:16-3.4
+
         env:
           POSTGRES_DB: nexa_test
           POSTGRES_USER: nexa
           POSTGRES_PASSWORD: nexa
+
+
         ports:
           - 5432:5432
-        options: >-
-          --health-cmd="pg_isready -U nexa"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
 
-      redis:
-        image: redis:7-alpine
-        ports:
-          - 6379:6379
+
         options: >-
-          --health-cmd "redis-cli ping"
+          --health-cmd "pg_isready -U nexa"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
 
+
+
+      redis:
+        image: redis:7-alpine
+
+        ports:
+          - 6379:6379
+
+
+
     steps:
+
       - uses: actions/checkout@v4
+
 
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: "npm"
+          cache: npm
+
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Generate Prisma client
+
+
+      - name: Prisma generate
+        working-directory: apps/api
         run: npx prisma generate
+
+
+
+      - name: Reset database
+
         working-directory: apps/api
 
-      - name: Run database migrations
-        run: npx prisma migrate deploy
-        working-directory: apps/api
         env:
-          DATABASE_URL: postgresql://nexa:nexa@localhost:5432/nexa_test?schema=public
+          DATABASE_URL: postgresql://nexa:nexa@localhost:5432/nexa_test
 
-      - name: Run unit tests
-        run: npm test
-        working-directory: apps/api
-        env:
-          DATABASE_URL: postgresql://nexa:nexa@localhost:5432/nexa_test?schema=public
-          REDIS_URL: redis://localhost:6379
-          JWT_SECRET: test-jwt-secret
+        run: |
 
-      - name: Run E2E tests
-        run: npm run test:e2e
-        working-directory: apps/api
-        env:
-          DATABASE_URL: postgresql://nexa:nexa@localhost:5432/nexa_test?schema=public
-          REDIS_URL: redis://localhost:6379
-          JWT_SECRET: test-jwt-secret
+          npx prisma migrate reset --force
 
-  test-admin:
-    name: Test Admin
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: "npm"
-
-      - name: Install dependencies
-        run: npm ci
 
       - name: Run tests
-        run: npm test
-        working-directory: apps/admin
 
-  test-mobile:
-    name: Test Mobile
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: subosito/flutter-action@v2
-        with:
-          flutter-version: "3.22.0"
-          cache: true
-
-      - name: Install dependencies
-        run: flutter pub get
-        working-directory: apps/mobile
-
-      - name: Run Flutter tests
-        run: flutter test
-        working-directory: apps/mobile
-
-  build:
-    name: Build
-    runs-on: ubuntu-latest
-    needs: [lint, typecheck, test-api, test-admin, test-mobile]
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: "npm"
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Generate Prisma client
-        run: npx prisma generate
         working-directory: apps/api
 
-      - name: Build all apps
+        env:
+
+          DATABASE_URL: postgresql://nexa:nexa@localhost:5432/nexa_test
+
+          REDIS_URL: redis://localhost:6379
+
+          JWT_SECRET: test-secret
+
+
+        run: |
+
+          npm test
+
+          npm run test:e2e
+
+
+
+  test-admin:
+
+    name: Admin Tests
+
+    runs-on: ubuntu-latest
+
+
+    steps:
+
+      - uses: actions/checkout@v4
+
+
+      - uses: actions/setup-node@v4
+
+        with:
+
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+
+
+      - run: npm ci
+
+
+
+      - name: Test Admin
+
+        working-directory: apps/admin
+
+        run: npm test
+
+
+
+  test-mobile:
+
+    name: Flutter Tests
+
+    runs-on: ubuntu-latest
+
+
+    steps:
+
+      - uses: actions/checkout@v4
+
+
+
+      - uses: subosito/flutter-action@v2
+
+        with:
+
+          flutter-version: "3.44.8"
+          cache: true
+
+
+
+      - name: Flutter dependencies
+
+        working-directory: apps/mobile
+
+        run: flutter pub get
+
+
+
+      - name: Flutter tests
+
+        working-directory: apps/mobile
+
+        run: flutter test
+
+
+
+  build:
+
+    name: Build
+
+    runs-on: ubuntu-latest
+
+
+    needs:
+
+      - lint
+      - typecheck
+      - test-api
+      - test-admin
+      - test-mobile
+
+
+
+    steps:
+
+      - uses: actions/checkout@v4
+
+
+
+      - uses: actions/setup-node@v4
+
+        with:
+
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+
+
+      - run: npm ci
+
+
+
+      - name: Prisma generate
+
+        working-directory: apps/api
+
+        run: npx prisma generate
+
+
+
+      - name: Build all
+
         run: npm run build
 
-      - name: Upload API build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: api-build
-          path: apps/api/dist/
-          retention-days: 1
 
-      - name: Upload Admin build artifacts
+
+      - name: Upload API
+
         uses: actions/upload-artifact@v4
+
         with:
+
+          name: api-build
+
+          path: apps/api/dist
+
+
+
+      - name: Upload Admin
+
+        uses: actions/upload-artifact@v4
+
+        with:
+
           name: admin-build
-          path: apps/admin/.next/
-          retention-days: 1
+
+          path: apps/admin/.next
