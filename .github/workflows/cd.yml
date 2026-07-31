@@ -79,32 +79,32 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-  deploy:
-    name: Deploy to Production
-    runs-on: ubuntu-latest
-    needs: [docker]
-    environment: production
+  # deploy:
+  #   name: Deploy to Production
+  #   runs-on: ubuntu-latest
+  #   needs: [docker]
+  #   environment: production
 
-    steps:
-      - uses: actions/checkout@v4
+  #   steps:
+  #     - uses: actions/checkout@v4
 
-      - name: Install SSH key
-        uses: shimataro/ssh-key-action@v2
-        with:
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          known_hosts: ${{ secrets.SSH_KNOWN_HOSTS }}
+  #     - name: Install SSH key
+  #       uses: shimataro/ssh-key-action@v2
+  #       with:
+  #         key: ${{ secrets.SSH_PRIVATE_KEY }}
+  #         known_hosts: ${{ secrets.SSH_KNOWN_HOSTS }}
 
-      - name: Deploy via Docker Compose
-        run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} '
-            cd /opt/nexa &&
-            docker compose pull &&
-            docker compose up -d --remove-orphans &&
-            docker system prune -f
-          '
+  #     - name: Deploy via Docker Compose
+  #       run: |
+  #         ssh -o StrictHostKeyChecking=no ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} '
+  #           cd /opt/nexa &&
+  #           docker compose pull &&
+  #           docker compose up -d --remove-orphans &&
+  #           docker system prune -f
+  #         '
 
-      - name: Health check
-        run: |
-          sleep 30
-          curl -f https://api.nexa.app/health/live || exit 1
-          curl -f https://admin.nexa.app/api/auth/session || exit 1
+  #     - name: Health check
+  #       run: |
+  #         sleep 30
+  #         curl -f https://api.nexa.app/health/live || exit 1
+  #         curl -f https://admin.nexa.app/api/auth/session || exit 1
